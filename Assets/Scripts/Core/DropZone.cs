@@ -83,19 +83,16 @@ namespace Core
             if (block == null) return false;
             if (IsFull) return false;
             
-            // Специальная логика для разных типов зон
             switch (zoneType)
             {
                 case DropZoneType.Workspace:
-                    return true; // Принимаем любые блоки
+                    return true; 
                     
                 case DropZoneType.Trash:
-                    return block.IsInWorkspace; // Только блоки из рабочей области
                     
                 case DropZoneType.Repeat:
                 case DropZoneType.IfTrue:
                 case DropZoneType.IfFalse:
-                    // Не принимаем блоки управления внутрь других блоков управления
                     return block.commandType != CommandType.Repeat && 
                            block.commandType != CommandType.If;
                            
@@ -108,28 +105,23 @@ namespace Core
         {
             if (!CanAcceptBlock(block)) return;
             
-            // Удаляем из предыдущей зоны
             if (block.IsInWorkspace)
             {
                 RemoveBlockFromPreviousZone(block);
             }
             
-            // Добавляем в эту зону
             blocks.Add(block);
             block.transform.SetParent(transform);
             block.SetInWorkspace(true, blocks.Count - 1);
             
-            // Специальная обработка для корзины
             if (zoneType == DropZoneType.Trash)
             {
                 RemoveBlock(block);
                 return;
             }
             
-            // Обновляем порядок выполнения
             UpdateExecutionOrder();
             
-            // Уведомляем программный интерпретатор
             ProgramInterpreter.Instance?.OnProgramChanged();
         }
 

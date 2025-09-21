@@ -87,7 +87,6 @@ namespace Core
             canvasGroup.alpha = 0.8f;
             canvasGroup.blocksRaycasts = false;
             
-            // Поднимаем блок наверх
             transform.SetAsLastSibling();
         }
         

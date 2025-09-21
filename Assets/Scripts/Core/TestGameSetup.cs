@@ -7,9 +7,6 @@ using UI;
 
 namespace RobotCoder.Core
 {
-    /// <summary>
-    /// Простой скрипт для тестирования системы без полной настройки UI
-    /// </summary>
     public class TestGameSetup : MonoBehaviour
     {
         [Header("Тест компонентов")]
@@ -69,7 +66,6 @@ namespace RobotCoder.Core
         {
             SetupBasicComponents();
             
-            // Простой тест - создаем блок команды
             GameObject testBlockObj = new GameObject("TestBlock");
             var moveCommand = testBlockObj.AddComponent<MoveForwardCommand>();
             
@@ -77,7 +73,6 @@ namespace RobotCoder.Core
             {
                 Debug.Log("✅ Блок команды создан успешно!");
                 
-                // Тестируем выполнение
                 if (RobotController.Instance != null)
                 {
                     bool result = moveCommand.Execute(RobotController.Instance);
@@ -85,7 +80,6 @@ namespace RobotCoder.Core
                 }
             }
             
-            // Очищаем тестовый объект
             if (Application.isPlaying)
                 Destroy(testBlockObj);
             else

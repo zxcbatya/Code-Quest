@@ -34,7 +34,6 @@ namespace Core
             originalPosition = rectTransform.anchoredPosition;
             originalParent = transform.parent;
             
-            // Если блок из палитры - создаем копию
             if (isFromPalette)
             {
                 CreateDragCopy();
@@ -58,7 +57,6 @@ namespace Core
             
             rectTransform.anchoredPosition = position;
             
-            // Проверяем зоны сброса
             CheckDropZones(eventData.position);
         }
 
@@ -69,18 +67,15 @@ namespace Core
             CurrentDragging = null;
             commandBlock.EndDrag();
             
-            // Находим зону сброса
             DropZone dropZone = FindDropZone(eventData.position);
             
             if (dropZone != null && dropZone.CanAcceptBlock(commandBlock))
             {
-                // Успешный сброс
                 dropZone.AcceptBlock(commandBlock);
                 AudioManager.Instance?.PlaySound("drop_success");
             }
             else
             {
-                // Возвращаем на место или удаляем
                 HandleFailedDrop();
                 AudioManager.Instance?.PlaySound("drop_fail");
             }
@@ -88,22 +83,18 @@ namespace Core
 
         private void CreateDragCopy()
         {
-            // Создаем копию для перетаскивания
             GameObject copyObj = Instantiate(gameObject, transform.parent);
             CommandBlock copyBlock = copyObj.GetComponent<CommandBlock>();
             DragDropHandler copyHandler = copyObj.GetComponent<DragDropHandler>();
             
-            // Настраиваем копию
             copyHandler.isFromPalette = false;
             copyHandler.originalPosition = originalPosition;
             copyHandler.originalParent = originalParent;
             
-            // Подменяем текущий объект
             CurrentDragging = copyHandler;
             copyHandler.commandBlock = copyBlock;
             copyHandler.rectTransform = copyObj.GetComponent<RectTransform>();
             
-            // Возвращаем оригинал на место
             commandBlock.EndDrag();
         }
 
@@ -148,12 +139,10 @@ namespace Core
         {
             if (isFromPalette)
             {
-                // Удаляем копию
                 Destroy(gameObject);
             }
             else
             {
-                // Возвращаем на исходную позицию
                 StartCoroutine(ReturnToOriginalPosition());
             }
         }

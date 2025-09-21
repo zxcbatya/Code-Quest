@@ -44,7 +44,6 @@ namespace Core
                 paletteTitle.text = titleText;
             }
             
-            // Настраиваем контейнер блоков
             if (blockContainer != null)
             {
                 VerticalLayoutGroup layoutGroup = blockContainer.GetComponent<VerticalLayoutGroup>();
@@ -60,7 +59,6 @@ namespace Core
                 layoutGroup.childForceExpandWidth = true;
                 layoutGroup.childForceExpandHeight = false;
                 
-                // Добавляем Content Size Fitter
                 ContentSizeFitter sizeFitter = blockContainer.GetComponent<ContentSizeFitter>();
                 if (sizeFitter == null)
                 {
@@ -113,10 +111,8 @@ namespace Core
         {
             GameObject blockObj = Instantiate(blockPrefab, blockContainer);
             
-            // Добавляем соответствующий компонент команды
             CommandBlock commandBlock = AddCommandComponent(blockObj, commandType);
             
-            // Настраиваем drag & drop
             DragDropHandler dragHandler = blockObj.GetComponent<DragDropHandler>();
             if (dragHandler == null)
             {
@@ -169,7 +165,6 @@ namespace Core
 
         public void AnimateBlockCreation()
         {
-            // Анимация появления блоков
             StartCoroutine(AnimateBlocks());
         }
 
