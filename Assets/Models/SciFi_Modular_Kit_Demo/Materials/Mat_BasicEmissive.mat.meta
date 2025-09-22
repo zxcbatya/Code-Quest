@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c5b32d2a7322a1c44b3a2a90c440101a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 327705
+  packageName: 'Sci-Fi Interior Modular Kit [Demo]'
+  packageVersion: 1.0
+  assetPath: Assets/SciFi_Modular_Kit_Demo/Materials/Mat_BasicEmissive.mat
+  uploadId: 776861
