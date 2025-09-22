@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: ffe1e5e9d899e1042840bf72580a35cc
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 327705
+  packageName: 'Sci-Fi Interior Modular Kit [Demo]'
+  packageVersion: 1.0
+  assetPath: Assets/SciFi_Modular_Kit_Demo/Materials/sg_lg_BasicEmissive.shadergraph
+  uploadId: 776861

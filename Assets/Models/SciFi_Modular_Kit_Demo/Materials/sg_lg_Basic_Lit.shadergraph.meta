@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0c453ea0e2a9b8940a956c374f558cc8
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 327705
+  packageName: 'Sci-Fi Interior Modular Kit [Demo]'
+  packageVersion: 1.0
+  assetPath: Assets/SciFi_Modular_Kit_Demo/Materials/sg_lg_Basic_Lit.shadergraph
+  uploadId: 776861
