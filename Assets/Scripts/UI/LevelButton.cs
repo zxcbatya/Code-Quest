@@ -66,7 +66,7 @@ namespace RobotCoder.UI
                 lockIcon.gameObject.SetActive(!isUnlocked);
             }
 
-            levelNumberText.color = isUnlocked ? Color.black : Color.gray;
+            levelNumberText.color = isUnlocked ? Color.white : Color.white;
         }
 
         private void LoadLevelProgress()
