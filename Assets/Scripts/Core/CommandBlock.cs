@@ -58,7 +58,7 @@ namespace Core
             InitializeBlock();
         }
 
-        protected virtual void InitializeBlock()
+        public virtual void InitializeBlock()
         {
             if (backgroundImage != null)
                 backgroundImage.color = blockColor;
@@ -70,7 +70,7 @@ namespace Core
                 commandText.text = GetLocalizedCommandName();
         }
 
-        protected virtual string GetLocalizedCommandName()
+        public virtual string GetLocalizedCommandName()
         {
             if (LocalizationManager.Instance != null)
             {

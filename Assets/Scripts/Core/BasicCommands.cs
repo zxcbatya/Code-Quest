@@ -1,11 +1,11 @@
-using RobotCoder.Core;
 using UnityEngine;
+using RobotCoder.Core;
 
 namespace Core
 {
     public class MoveForwardCommand : CommandBlock
     {
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.MoveForward;
             commandName = "Вперед";
@@ -22,7 +22,7 @@ namespace Core
 
     public class TurnLeftCommand : CommandBlock
     {
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.TurnLeft;
             commandName = "Налево";
@@ -39,7 +39,7 @@ namespace Core
 
     public class TurnRightCommand : CommandBlock
     {
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.TurnRight;
             commandName = "Направо";
@@ -56,7 +56,7 @@ namespace Core
 
     public class JumpCommand : CommandBlock
     {
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.Jump;
             commandName = "Прыжок";
@@ -73,7 +73,7 @@ namespace Core
 
     public class InteractCommand : CommandBlock
     {
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.Interact;
             commandName = "Действие";

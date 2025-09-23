@@ -1,8 +1,10 @@
-using Core;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using RobotCoder.Core;
+using Core;
+using UI;
+using DropZone = Core.DropZone;
 
 namespace RobotCoder.Core
 {
@@ -13,7 +15,7 @@ namespace RobotCoder.Core
         [SerializeField] private TMP_InputField repeatInputField;
         [SerializeField] private DropZone innerDropZone;
         
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.Repeat;
             commandName = "Повтор";
@@ -94,7 +96,7 @@ namespace RobotCoder.Core
             ItemPresent     // Предмет рядом
         }
         
-        protected override void InitializeBlock()
+        public override void InitializeBlock()
         {
             commandType = CommandType.If;
             commandName = "Если";

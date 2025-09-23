@@ -1,16 +1,34 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+namespace Core
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class GameManager : MonoBehaviour
     {
-        
-    }
+        public static GameManager Instance { get; private set; }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        [SerializeField] private int currentLevel = 1;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        public int GetCurrentLevel()
+        {
+            return currentLevel;
+        }
+
+        public void SetCurrentLevel(int level)
+        {
+            currentLevel = Mathf.Max(1, level);
+        }
     }
 }

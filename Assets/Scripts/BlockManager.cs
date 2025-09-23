@@ -25,7 +25,7 @@ public class BlockManager : MonoBehaviour
 
         if (blocks.Length == 0)
         {
-            Debug.LogWarning("Нет объектов");
+            Debug.LogWarning("РќРµС‚ РѕР±СЉРµРєС‚РѕРІ");
         }
     }
 }

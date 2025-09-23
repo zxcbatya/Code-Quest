@@ -2,8 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Linq;
 using Core;
 using UI;
+using DropZoneUI = UI.DropZone;
 
 namespace RobotCoder.UI
 {
@@ -12,7 +14,7 @@ namespace RobotCoder.UI
         [Header("Основные компоненты")]
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private RectTransform contentArea;
-        [SerializeField] private DropZone mainDropZone;
+        [SerializeField] private DropZoneUI mainDropZone;
         [SerializeField] private Button clearAllButton;
         [SerializeField] private Button undoButton;
         [SerializeField] private Button redoButton;
@@ -32,8 +34,8 @@ namespace RobotCoder.UI
         [SerializeField] private string dropSoundName = "drop_success";
         [SerializeField] private string clearSoundName = "clear_workspace";
 
-        private List<CommandBlock> undoStack = new List<CommandBlock>();
-        private List<CommandBlock> redoStack = new List<CommandBlock>();
+        private readonly List<CommandBlock> undoStack = new List<CommandBlock>();
+        private readonly List<CommandBlock> redoStack = new List<CommandBlock>();
         private int maxUndoSteps = 10;
 
         public System.Action<int> OnCommandCountChanged;
@@ -48,19 +50,13 @@ namespace RobotCoder.UI
 
         private void InitializeWorkspace()
         {
-            if (mainDropZone == null)
-            {
-                mainDropZone = GetComponentInChildren<DropZone>();
-            }
+            if (mainDropZone == null) mainDropZone = GetComponentInChildren<DropZoneUI>();
 
             UpdateInstructionText();
             UpdateCommandCount();
             
             // Настраиваем прокрутку
-            if (scrollRect != null)
-            {
-                scrollRect.verticalScrollbar.value = 1f; // Прокрутка вверх
-            }
+            if (scrollRect != null) scrollRect.verticalNormalizedPosition = 1f;
         }
 
         private void SetupEventListeners()
@@ -68,12 +64,6 @@ namespace RobotCoder.UI
             if (clearAllButton) clearAllButton.onClick.AddListener(ClearAllBlocks);
             if (undoButton) undoButton.onClick.AddListener(UndoLastAction);
             if (redoButton) redoButton.onClick.AddListener(RedoLastAction);
-
-            // Подписываемся на события drop zone
-            if (mainDropZone != null)
-            {
-                // Эти события нужно будет добавить в DropZone класс
-            }
         }
 
         public void OnBlockAdded(CommandBlock block)
@@ -97,50 +87,34 @@ namespace RobotCoder.UI
 
         private void UpdateCommandCount()
         {
-            int commandCount = 0;
-            
-            if (mainDropZone != null)
-            {
-                commandCount = mainDropZone.BlockCount;
-            }
-            
-            if (commandCountText != null)
-            {
-                commandCountText.text = commandCount.ToString();
-            }
-            
+            int commandCount = mainDropZone?.BlockCount ?? 0;
+            commandCountText?.SetText(commandCount.ToString());
+
             OnCommandCountChanged?.Invoke(commandCount);
         }
 
         private void UpdateWorkspaceVisual()
         {
-            bool hasBlocks = mainDropZone != null && mainDropZone.BlockCount > 0;
-            
-            if (backgroundImage != null)
-            {
-                backgroundImage.color = hasBlocks ? filledWorkspaceColor : emptyWorkspaceColor;
-            }
-            
+            bool hasBlocks = mainDropZone?.BlockCount > 0;
+            if (backgroundImage != null) backgroundImage.color = hasBlocks ? filledWorkspaceColor : emptyWorkspaceColor;
+
             UpdateInstructionText();
         }
 
         private void UpdateInstructionText()
         {
             if (instructionText == null) return;
-            
-            bool hasBlocks = mainDropZone != null && mainDropZone.BlockCount > 0;
+            bool hasBlocks = mainDropZone?.BlockCount > 0;
             
             if (hasBlocks)
             {
-                string runText = LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") 
-                    ?? "Нажмите СТАРТ для запуска";
+                string runText = LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") ?? "Нажмите СТАРТ для запуска";
                 instructionText.text = runText;
                 instructionText.color = new Color(0.2f, 0.8f, 0.2f, 0.8f);
             }
             else
             {
-                string dragText = LocalizationManager.Instance?.GetText("DRAG_BLOCKS_HERE") 
-                    ?? "Перетащите блоки сюда";
+                string dragText = LocalizationManager.Instance?.GetText("DRAG_BLOCKS_HERE") ?? "Перетащите блоки сюда";
                 instructionText.text = dragText;
                 instructionText.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
             }
@@ -150,7 +124,6 @@ namespace RobotCoder.UI
         {
             if (mainDropZone != null)
             {
-                // Сохраняем состояние для отмены
                 var currentBlocks = new List<CommandBlock>(mainDropZone.Blocks);
                 if (currentBlocks.Count > 0)
                 {
@@ -161,7 +134,6 @@ namespace RobotCoder.UI
                         undoStack.RemoveRange(0, excess);
                     }
                 }
-                
                 mainDropZone.ClearAllBlocks();
                 redoStack.Clear();
             }
@@ -240,15 +212,14 @@ namespace RobotCoder.UI
         {
             if (backgroundImage != null)
             {
-                Color targetColor = highlight ? Color.yellow : 
-                    (mainDropZone?.BlockCount > 0 ? filledWorkspaceColor : emptyWorkspaceColor);
+                Color targetColor = highlight ? Color.yellow : (mainDropZone?.BlockCount > 0 ? filledWorkspaceColor : emptyWorkspaceColor);
                 backgroundImage.color = targetColor;
             }
         }
 
         public CommandBlock[] GetAllBlocks()
         {
-            return mainDropZone?.GetOrderedBlocks() ?? new CommandBlock[0];
+            return mainDropZone?.GetOrderedBlocks() ?? System.Array.Empty<CommandBlock>();
         }
 
         public bool HasBlocks()

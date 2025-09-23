@@ -37,6 +37,7 @@ namespace Core
         public bool allowInteract = false;
         public bool allowRepeat = false;
         public bool allowIf = false;
+        public bool allowElse = false;
         
         public enum TileType
         {
