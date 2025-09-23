@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using RobotCoder.UI;
 
 namespace Core
 {
@@ -108,7 +109,7 @@ namespace Core
                 SaveManager.SaveSettings(ACHIEVEMENT_PREFIX + id, 1);
                 
                 // Показываем уведомление о достижении
-                UI.HintManager.Instance?.ShowHint($"Достижение разблокировано: {achievement.title}");
+                HintManager.Instance?.ShowHint($"Достижение разблокировано: {achievement.title}");
             }
         }
         

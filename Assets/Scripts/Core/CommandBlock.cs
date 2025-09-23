@@ -1,5 +1,6 @@
 
 using RobotCoder.Core;
+using RobotCoder.UI;
 using TMPro;
 using UI;
 using UnityEngine;
@@ -72,9 +73,9 @@ namespace Core
 
         public virtual string GetLocalizedCommandName()
         {
-            if (LocalizationManager.Instance != null)
+            if (RobotCoder.UI.LocalizationManager.Instance != null)
             {
-                return LocalizationManager.Instance.GetText(commandType.ToString().ToUpper());
+                return RobotCoder.UI.LocalizationManager.Instance.GetText(commandType.ToString().ToUpper());
             }
             return commandName;
         }

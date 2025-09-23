@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UI
+namespace RobotCoder.UI
 {
     public class LocalizationManager : MonoBehaviour
     {
@@ -39,7 +39,6 @@ namespace UI
         {
             localizationDict = new Dictionary<string, LocalizationData>();
 
-            // Добавляем базовые тексты
             AddLocalization("PLAY", "ИГРАТЬ", "PLAY");
             AddLocalization("LEVELS", "УРОВНИ", "LEVELS");
             AddLocalization("SETTINGS", "НАСТРОЙКИ", "SETTINGS");
@@ -98,12 +97,11 @@ namespace UI
                 return currentLanguage == "RU" ? data.russian : data.english;
             }
 
-            return key; // Возвращаем ключ, если перевод не найден
+            return key; 
         }
 
         private void UpdateAllTexts()
         {
-            // Находим все LocalizedText компоненты и обновляем их
             LocalizedText[] localizedTexts = FindObjectsOfType<LocalizedText>();
             foreach (var localizedText in localizedTexts)
             {

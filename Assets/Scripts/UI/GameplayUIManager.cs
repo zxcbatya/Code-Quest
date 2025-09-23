@@ -24,15 +24,34 @@ namespace RobotCoder.UI
         [SerializeField] private Button resetButton;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button menuButton;
-        [SerializeField] private Button nextLevelButton;
-        [SerializeField] private Button retryButton;
 
         [Header("Информационные элементы")]
         [SerializeField] private TextMeshProUGUI levelTitleText;
         [SerializeField] private TextMeshProUGUI commandCounterText;
         [SerializeField] private TextMeshProUGUI maxCommandsText;
-        [SerializeField] private Image[] starsDisplay;
+        [SerializeField] private Image[] starsDisplay;      // для компактного отображения, используется и в WinPanel
         [SerializeField] private Slider speedSlider;
+
+        [Header("Win Panel References")] // соответствуют структуре из ТЗ
+        [SerializeField] private TextMeshProUGUI winTitleText;      // WinTitle
+        [SerializeField] private Transform starsContainer;          // StarsContainer (родитель для Star1..3)
+        [SerializeField] private TextMeshProUGUI scoreText;         // ScoreText
+        [SerializeField] private TextMeshProUGUI timeText;          // TimeText
+        [SerializeField] private Button winNextLevelButton;         // NextLevelButton
+        [SerializeField] private Button winRetryButton;             // RetryButton
+        [SerializeField] private Button winMenuButton;              // MenuButton
+
+        [Header("Lose Panel References")] // соответствует LosePanel из ТЗ
+        [SerializeField] private TextMeshProUGUI loseTitleText;     // LoseTitle
+        [SerializeField] private TextMeshProUGUI loseMessageText;   // LoseMessage
+        [SerializeField] private Button loseRetryButton;            // RetryButton
+        [SerializeField] private Button loseMenuButton;             // MenuButton
+
+        [Header("Pause Panel References")] // соответствует PausePanel из ТЗ
+        [SerializeField] private TextMeshProUGUI pauseTitleText;    // PauseTitle
+        [SerializeField] private Button resumeButton;               // ResumeButton
+        [SerializeField] private Button restartButton;              // RestartButton
+        [SerializeField] private Button pauseMenuButton;            // MenuButton (внутри PausePanel)
 
         [Header("Цвета звезд")]
         [SerializeField] private Color activeStarColor = Color.yellow;
@@ -48,7 +67,6 @@ namespace RobotCoder.UI
         private bool isGamePaused = false;
         private bool isGameRunning = false;
 
-        // События
         public System.Action OnStartProgram;
         public System.Action OnResetProgram;
         public System.Action OnPauseProgram;
@@ -63,16 +81,13 @@ namespace RobotCoder.UI
 
         private void InitializeUI()
         {
-            // Скрываем панели результатов
             if (winPanel) winPanel.SetActive(false);
             if (losePanel) losePanel.SetActive(false);
             if (pausePanel) pausePanel.SetActive(false);
 
-            // Устанавливаем начальные значения
             UpdateCommandCounter(0);
             UpdateStarsDisplay(0);
             
-            // Настраиваем слайдер скорости
             if (speedSlider != null)
             {
                 speedSlider.value = 1f;
@@ -83,18 +98,24 @@ namespace RobotCoder.UI
 
         private void SetupEventListeners()
         {
-            // Кнопки управления
             if (startButton) startButton.onClick.AddListener(OnStartButtonClicked);
             if (resetButton) resetButton.onClick.AddListener(OnResetButtonClicked);
             if (pauseButton) pauseButton.onClick.AddListener(OnPauseButtonClicked);
             if (menuButton) menuButton.onClick.AddListener(OnMenuButtonClicked);
-            if (nextLevelButton) nextLevelButton.onClick.AddListener(OnNextLevelClicked);
-            if (retryButton) retryButton.onClick.AddListener(OnRetryButtonClicked);
 
-            // Слайдер скорости
+            if (winNextLevelButton) winNextLevelButton.onClick.AddListener(OnNextLevelClicked);
+            if (winRetryButton) winRetryButton.onClick.AddListener(OnRetryButtonClicked);
+            if (winMenuButton) winMenuButton.onClick.AddListener(OnMenuButtonClicked);
+
+            if (loseRetryButton) loseRetryButton.onClick.AddListener(OnRetryButtonClicked);
+            if (loseMenuButton) loseMenuButton.onClick.AddListener(OnMenuButtonClicked);
+
+            if (resumeButton) resumeButton.onClick.AddListener(() => ShowPausePanel(false));
+            if (restartButton) restartButton.onClick.AddListener(OnRetryButtonClicked);
+            if (pauseMenuButton) pauseMenuButton.onClick.AddListener(OnMenuButtonClicked);
+
             if (speedSlider) speedSlider.onValueChanged.AddListener(OnSpeedSliderChanged);
 
-            // Клавиши быстрого доступа
             InputManager.Instance?.RegisterKeyAction(KeyCode.Space, OnStartButtonClicked);
             InputManager.Instance?.RegisterKeyAction(KeyCode.R, OnResetButtonClicked);
             InputManager.Instance?.RegisterKeyAction(KeyCode.Escape, OnPauseButtonClicked);
@@ -102,7 +123,6 @@ namespace RobotCoder.UI
 
         private void LoadLevelData()
         {
-            // Получаем данные текущего уровня
             string levelName = SceneManager.GetActiveScene().name;
             if (levelName.StartsWith("Level_"))
             {
@@ -118,11 +138,10 @@ namespace RobotCoder.UI
         {
             if (levelTitleText != null)
             {
-                string localizedTitle = LocalizationManager.Instance?.GetText("LEVEL") ?? "Уровень";
+                string localizedTitle = RobotCoder.UI.LocalizationManager.Instance?.GetText("LEVEL") ?? "Уровень";
                 levelTitleText.text = $"{localizedTitle} {currentLevel}";
             }
 
-            // Загружаем данные уровня из ScriptableObject
             LevelData levelData = Resources.Load<LevelData>($"Levels/Level_{currentLevel:D2}");
             if (levelData != null)
             {
@@ -135,13 +154,11 @@ namespace RobotCoder.UI
         {
             if (isGameRunning)
             {
-                // Остановка программы
                 OnPauseProgram?.Invoke();
                 SetGameRunning(false);
             }
             else
             {
-                // Запуск программы
                 OnStartProgram?.Invoke();
                 SetGameRunning(true);
             }
@@ -192,7 +209,6 @@ namespace RobotCoder.UI
             }
             else
             {
-                // Возвращаемся в главное меню
                 SceneManager.LoadScene("MainMenu");
             }
         }
@@ -218,11 +234,10 @@ namespace RobotCoder.UI
                 if (buttonText != null)
                 {
                     string key = running ? "STOP" : "START";
-                    buttonText.text = LocalizationManager.Instance?.GetText(key) ?? (running ? "СТОП" : "СТАРТ");
+                    buttonText.text = RobotCoder.UI.LocalizationManager.Instance?.GetText(key) ?? (running ? "СТОП" : "СТАРТ");
                 }
             }
 
-            // Блокируем/разблокируем кнопки
             if (resetButton) resetButton.interactable = !running;
         }
 
@@ -234,7 +249,6 @@ namespace RobotCoder.UI
             {
                 commandCounterText.text = $"{currentCommandCount}";
                 
-                // Меняем цвет если превышен лимит
                 if (currentCommandCount > maxCommands)
                 {
                     commandCounterText.color = Color.red;
@@ -279,11 +293,57 @@ namespace RobotCoder.UI
                 UpdateStarsDisplay(starsEarned);
                 StartCoroutine(AnimatePanel(winPanel, true));
                 
-                // Сохраняем прогресс
                 LevelButton.SaveLevelProgress(currentLevel, starsEarned);
                 MainMenuManager.UnlockLevel(currentLevel + 1);
             }
             
+            AudioManager.Instance?.PlaySound("success");
+        }
+
+        public void ShowWinPanelDetailed(int starsEarned, int score, float timeSeconds)
+        {
+            if (winPanel != null)
+            {
+                winPanel.SetActive(true);
+
+                if (winTitleText)
+                {
+                    winTitleText.text = RobotCoder.UI.LocalizationManager.Instance?.GetText("WIN_TITLE") ?? "ПОБЕДА!";
+                }
+
+                if (starsContainer)
+                {
+                    var images = starsContainer.GetComponentsInChildren<Image>(true);
+                    for (int i = 0; i < images.Length; i++)
+                    {
+                        images[i].color = i < starsEarned ? activeStarColor : inactiveStarColor;
+                    }
+                }
+                else
+                {
+                    UpdateStarsDisplay(starsEarned);
+                }
+
+                // Score
+                if (scoreText)
+                {
+                    string scoreLabel = RobotCoder.UI.LocalizationManager.Instance?.GetText("SCORE") ?? "Очки";
+                    scoreText.text = $"{scoreLabel}: {score}";
+                }
+
+                // Time
+                if (timeText)
+                {
+                    string timeLabel = RobotCoder.UI.LocalizationManager.Instance?.GetText("TIME") ?? "Время";
+                    timeText.text = $"{timeLabel}: {FormatTime(timeSeconds)}";
+                }
+
+                StartCoroutine(AnimatePanel(winPanel, true));
+
+                LevelButton.SaveLevelProgress(currentLevel, starsEarned);
+                MainMenuManager.UnlockLevel(currentLevel + 1);
+            }
+
             AudioManager.Instance?.PlaySound("success");
         }
 
@@ -292,6 +352,15 @@ namespace RobotCoder.UI
             if (losePanel != null)
             {
                 losePanel.SetActive(true);
+                // Title/Message
+                if (loseTitleText)
+                {
+                    loseTitleText.text = RobotCoder.UI.LocalizationManager.Instance?.GetText("LOSE_TITLE") ?? "НЕУДАЧА";
+                }
+                if (loseMessageText)
+                {
+                    loseMessageText.text = RobotCoder.UI.LocalizationManager.Instance?.GetText("TRY_AGAIN") ?? "Попробуй еще раз!";
+                }
                 StartCoroutine(AnimatePanel(losePanel, true));
             }
             
@@ -306,6 +375,10 @@ namespace RobotCoder.UI
                 {
                     pausePanel.SetActive(true);
                     StartCoroutine(AnimatePanel(pausePanel, true));
+                    if (pauseTitleText)
+                    {
+                        pauseTitleText.text = RobotCoder.UI.LocalizationManager.Instance?.GetText("PAUSE") ?? "ПАУЗА";
+                    }
                 }
                 else
                 {
@@ -315,6 +388,15 @@ namespace RobotCoder.UI
             
             isGamePaused = show;
             Time.timeScale = show ? 0f : 1f;
+        }
+
+        private static string FormatTime(float seconds)
+        {
+            if (seconds < 0) return "--:--";
+            int s = Mathf.Max(0, Mathf.RoundToInt(seconds));
+            int m = s / 60;
+            int r = s % 60;
+            return $"{m:00}:{r:00}";
         }
 
         private IEnumerator AnimatePanel(GameObject panel, bool show)
@@ -355,7 +437,6 @@ namespace RobotCoder.UI
 
         private void OnDestroy()
         {
-            // Восстанавливаем нормальную скорость времени
             Time.timeScale = 1f;
         }
     }

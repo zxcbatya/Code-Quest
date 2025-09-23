@@ -85,9 +85,9 @@ namespace Core
             QualitySettings.vSyncCount = vSync ? 1 : 0;
             
             // Применяем настройки локализации
-            if (UI.LocalizationManager.Instance != null)
+            if (RobotCoder.UI.LocalizationManager.Instance != null)
             {
-                UI.LocalizationManager.Instance.SetLanguage(language);
+                RobotCoder.UI.LocalizationManager.Instance.SetLanguage(language);
             }
         }
         
@@ -120,7 +120,7 @@ namespace Core
         public void SetLanguage(string lang) 
         { 
             language = lang;
-            UI.LocalizationManager.Instance?.SetLanguage(language);
+            RobotCoder.UI.LocalizationManager.Instance?.SetLanguage(language);
             SaveSettings();
         }
         

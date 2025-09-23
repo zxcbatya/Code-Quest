@@ -2,7 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Collections;
 
-namespace UI
+namespace RobotCoder.UI
 {
     public class HintManager : MonoBehaviour
     {

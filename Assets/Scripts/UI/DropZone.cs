@@ -3,13 +3,14 @@ using UnityEngine.EventSystems;
 using Core;
 using UnityEngine.UI;
 
-namespace UI
+namespace RobotCoder.UI
 {
     public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Visual Feedback")]
-        [SerializeField] private Color highlightColor = Color.green;
-        [SerializeField] private Color normalColor = Color.white;
+        [SerializeField] private Color highlightColor = new Color(0.2f, 0.8f, 0.2f, 0.8f);
+        [SerializeField] private Color normalColor = new Color(0.8f, 0.8f, 0.8f, 0.3f);
+        [SerializeField] private float highlightIntensity = 1.5f;
         
         private Image backgroundImage;
         public int slotIndex = -1;
@@ -20,24 +21,34 @@ namespace UI
         private void Awake()
         {
             backgroundImage = GetComponent<Image>();
+            if (backgroundImage == null)
+            {
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Создаем Image если его нет
+                backgroundImage = gameObject.AddComponent<Image>();
+                backgroundImage.color = new Color(0.8f, 0.8f, 0.8f, 0.3f); // Полупрозрачный серый
+                Debug.Log("✓ Создан Image компонент для DropZone");
+            }
+            
             if (backgroundImage != null)
             {
                 normalColor = backgroundImage.color;
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Убеждаемся, что DropZone может получать raycast
+                backgroundImage.raycastTarget = true;
+                Debug.Log("✓ DropZone Image настроен");
+            }
+            
+            // Убеждаемся, что у DropZone есть все необходимые компоненты
+            if (GetComponent<RectTransform>() == null)
+            {
+                Debug.LogError("DropZone должен иметь RectTransform!");
             }
         }
         
         public void OnDrop(PointerEventData eventData)
         {
-            // Получаем перетаскиваемый блок
-            DragDropHandler dragHandler = eventData.pointerDrag?.GetComponent<DragDropHandler>();
-            if (dragHandler != null)
-            {
-                CommandBlock commandBlock = dragHandler.GetComponent<CommandBlock>();
-                if (commandBlock != null)
-                {
-                    ReceiveBlock(commandBlock);
-                }
-            }
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: DropZone больше не обрабатывает OnDrop
+            // Вся логика теперь в DragDropHandler
+            Debug.Log("OnDrop вызван, но логика обрабатывается в DragDropHandler");
             
             // Восстанавливаем нормальный цвет
             if (backgroundImage != null)
@@ -50,94 +61,149 @@ namespace UI
         {
             if (commandBlock == null) return;
             
-            // Создаем копию блока, если он из палитры
-            bool isFromPalette = commandBlock.transform.parent.CompareTag("BlockPalette");
-            CommandBlock blockToPlace = commandBlock;
+            // Создаем копию блока
+            GameObject blockCopy = Instantiate(commandBlock.gameObject, transform);
+            CommandBlock blockToPlace = blockCopy.GetComponent<CommandBlock>();
             
-            if (isFromPalette)
-            {
-                // Создаем копию блока
-                GameObject blockCopy = Instantiate(commandBlock.gameObject, transform);
-                blockToPlace = blockCopy.GetComponent<CommandBlock>();
-                
-                // Настраиваем копию
-                RectTransform rectTransform = blockToPlace.GetComponent<RectTransform>();
-                if (rectTransform != null)
-                {
-                    rectTransform.anchoredPosition = Vector2.zero;
-                    rectTransform.localScale = Vector3.one;
-                }
-                
-                // Добавляем DragDropHandler для новой копии
-                if (blockToPlace.GetComponent<DragDropHandler>() == null)
-                {
-                    blockToPlace.gameObject.AddComponent<DragDropHandler>();
-                }
-            }
-            else
-            {
-                // Перемещаем существующий блок
-                commandBlock.transform.SetParent(transform);
-                RectTransform rectTransform = commandBlock.GetComponent<RectTransform>();
-                if (rectTransform != null)
-                {
-                    rectTransform.anchoredPosition = Vector2.zero;
-                    rectTransform.localScale = Vector3.one;
-                }
-            }
+            // Настраиваем копию для рабочей области
+            SetupBlockForWorkspace(blockToPlace.gameObject);
+            
+            // Устанавливаем блок как находящийся в рабочей области
+            blockToPlace.SetInWorkspace(true, GetNextExecutionOrder());
             
             // Вызываем событие
             OnBlockDropped?.Invoke(blockToPlace, slotIndex);
         }
+        
+        public void AcceptBlock(CommandBlock commandBlock)
+        {
+            if (commandBlock == null) return;
+            
+            // Перемещаем существующий блок
+            commandBlock.transform.SetParent(transform);
+            SetupBlockForWorkspace(commandBlock.gameObject);
+            
+            // Устанавливаем блок как находящийся в рабочей области
+            commandBlock.SetInWorkspace(true, GetNextExecutionOrder());
+            
+            // Вызываем событие
+            OnBlockDropped?.Invoke(commandBlock, slotIndex);
+        }
+        
+        private int GetNextExecutionOrder()
+        {
+            return BlockCount; // Следующий порядок выполнения
+        }
+        
+        private void SetupBlockForWorkspace(GameObject blockObj)
+        {
+            // Настраиваем RectTransform для блока в рабочей области
+            RectTransform rectTransform = blockObj.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.anchoredPosition = Vector2.zero;
+                rectTransform.localScale = Vector3.one;
+                rectTransform.sizeDelta = new Vector2(120, 60);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            }
+            
+            // Убеждаемся, что у блока есть все необходимые компоненты
+            SetupBlockComponents(blockObj);
+        }
+        
+        private void SetupBlockComponents(GameObject blockObj)
+        {
+            // Убеждаемся, что у блока есть все необходимые компоненты
+            if (blockObj.GetComponent<DragDropHandler>() == null)
+            {
+                blockObj.AddComponent<DragDropHandler>();
+            }
+            
+            if (blockObj.GetComponent<CanvasGroup>() == null)
+            {
+                blockObj.AddComponent<CanvasGroup>();
+            }
+            
+            if (blockObj.GetComponent<Button>() == null)
+            {
+                blockObj.AddComponent<Button>();
+            }
+            
+            // Настраиваем RectTransform для блока в рабочей области
+            RectTransform rectTransform = blockObj.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = new Vector2(120, 60);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.localScale = Vector3.one;
+            }
+        }
 
         // --- API expected by WorkspacePanel ---
-        private readonly System.Collections.Generic.List<CommandBlock> _blocks = new System.Collections.Generic.List<CommandBlock>();
+        // Упразднён внутренний список. Истина состояния — дочерние объекты с компонентом CommandBlock.
 
-        public int BlockCount => _blocks.Count;
+        public int BlockCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    if (transform.GetChild(i).GetComponent<CommandBlock>() != null) count++;
+                }
+                return count;
+            }
+        }
 
-        public System.Collections.Generic.IReadOnlyList<CommandBlock> Blocks => _blocks;
+        public System.Collections.Generic.IReadOnlyList<CommandBlock> Blocks
+        {
+            get
+            {
+                var list = new System.Collections.Generic.List<CommandBlock>(transform.childCount);
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    var block = transform.GetChild(i).GetComponent<CommandBlock>();
+                    if (block != null) list.Add(block);
+                }
+                return list;
+            }
+        }
 
         public void ClearAllBlocks()
         {
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var child = transform.GetChild(i);
-                var block = child.GetComponent<CommandBlock>();
-                if (block != null)
+                if (child.GetComponent<CommandBlock>() != null)
                 {
-                    _blocks.Remove(block);
+                    Destroy(child.gameObject);
                 }
-                Destroy(child.gameObject);
             }
         }
 
         public void RemoveBlock(CommandBlock block)
         {
             if (block == null) return;
-            _blocks.Remove(block);
             if (block.transform.parent == transform)
             {
                 Destroy(block.gameObject);
             }
         }
 
-        public void AcceptBlock(CommandBlock block)
-        {
-            if (block == null) return;
-            block.transform.SetParent(transform);
-            var rect = block.GetComponent<RectTransform>();
-            if (rect != null)
-            {
-                rect.anchoredPosition = Vector2.zero;
-                rect.localScale = Vector3.one;
-            }
-            if (!_blocks.Contains(block))
-                _blocks.Add(block);
-        }
 
         public CommandBlock[] GetOrderedBlocks()
         {
-            return _blocks.ToArray();
+            var list = new System.Collections.Generic.List<CommandBlock>(transform.childCount);
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                var block = transform.GetChild(i).GetComponent<CommandBlock>();
+                if (block != null) list.Add(block);
+            }
+            return list.ToArray();
         }
         
         public void OnPointerEnter(PointerEventData eventData)
@@ -148,8 +214,11 @@ namespace UI
                 // Подсвечиваем зону сброса
                 if (backgroundImage != null)
                 {
-                    backgroundImage.color = highlightColor;
+                    backgroundImage.color = highlightColor * highlightIntensity;
                 }
+                
+                // Добавляем легкую анимацию пульсации
+                StartCoroutine(PulseAnimation());
             }
         }
         
@@ -159,6 +228,22 @@ namespace UI
             if (backgroundImage != null)
             {
                 backgroundImage.color = normalColor;
+            }
+            
+            // Останавливаем анимацию пульсации
+            StopAllCoroutines();
+        }
+        
+        private System.Collections.IEnumerator PulseAnimation()
+        {
+            while (true)
+            {
+                float pulse = Mathf.PingPong(Time.time * 2f, 0.3f) + 0.7f;
+                if (backgroundImage != null)
+                {
+                    backgroundImage.color = highlightColor * pulse;
+                }
+                yield return null;
             }
         }
     }

@@ -4,8 +4,8 @@ using TMPro;
 using System.Collections.Generic;
 using System.Linq;
 using Core;
-using UI;
-using DropZoneUI = UI.DropZone;
+using RobotCoder.UI;
+using DropZoneUI = RobotCoder.UI.DropZone;
 
 namespace RobotCoder.UI
 {
@@ -52,11 +52,23 @@ namespace RobotCoder.UI
         {
             if (mainDropZone == null) mainDropZone = GetComponentInChildren<DropZoneUI>();
 
+            // Подписываемся на события DropZone
+            if (mainDropZone != null)
+            {
+                mainDropZone.OnBlockDropped += OnBlockDropped;
+            }
+
             UpdateInstructionText();
             UpdateCommandCount();
             
             // Настраиваем прокрутку
             if (scrollRect != null) scrollRect.verticalNormalizedPosition = 1f;
+        }
+        
+        private void OnBlockDropped(CommandBlock block, int slotIndex)
+        {
+            // Обрабатываем добавление блока в рабочую область
+            OnBlockAdded(block);
         }
 
         private void SetupEventListeners()
@@ -108,13 +120,13 @@ namespace RobotCoder.UI
             
             if (hasBlocks)
             {
-                string runText = LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") ?? "Нажмите СТАРТ для запуска";
+                string runText = RobotCoder.UI.LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") ?? "Нажмите СТАРТ для запуска";
                 instructionText.text = runText;
                 instructionText.color = new Color(0.2f, 0.8f, 0.2f, 0.8f);
             }
             else
             {
-                string dragText = LocalizationManager.Instance?.GetText("DRAG_BLOCKS_HERE") ?? "Перетащите блоки сюда";
+                string dragText = RobotCoder.UI.LocalizationManager.Instance?.GetText("DRAG_BLOCKS_HERE") ?? "Перетащите блоки сюда";
                 instructionText.text = dragText;
                 instructionText.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
             }
@@ -240,6 +252,15 @@ namespace RobotCoder.UI
             if (scrollRect != null)
             {
                 scrollRect.verticalNormalizedPosition = 0f;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Отписываемся от событий для предотвращения утечек памяти
+            if (mainDropZone != null)
+            {
+                mainDropZone.OnBlockDropped -= OnBlockDropped;
             }
         }
 

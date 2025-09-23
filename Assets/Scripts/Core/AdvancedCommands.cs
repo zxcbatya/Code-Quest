@@ -3,8 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using RobotCoder.Core;
 using Core;
-using UI;
-using DropZone = Core.DropZone;
+using RobotCoder.UI;
 
 namespace RobotCoder.Core
 {

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using RobotCoder.Core;
 using TMPro;
+using RobotCoder.UI;
 using UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Core
@@ -40,7 +42,7 @@ namespace Core
         {
             if (paletteTitle != null)
             {
-                string titleText = LocalizationManager.Instance?.GetText("COMMAND_PALETTE") ?? "Команды";
+                string titleText = RobotCoder.UI.LocalizationManager.Instance?.GetText("COMMAND_PALETTE") ?? "Команды";
                 paletteTitle.text = titleText;
             }
             
@@ -111,16 +113,96 @@ namespace Core
         {
             GameObject blockObj = Instantiate(blockPrefab, blockContainer);
             
+            // Добавляем тег для идентификации палитры
+            blockObj.tag = "BlockPalette";
+            
             CommandBlock commandBlock = AddCommandComponent(blockObj, commandType);
             
-            DragDropHandler dragHandler = blockObj.GetComponent<DragDropHandler>();
-            if (dragHandler == null)
+            // Убеждаемся, что у блока есть все необходимые компоненты
+            SetupBlockComponents(blockObj);
+            
+            // Инициализируем блок
+            if (commandBlock != null)
             {
-                dragHandler = blockObj.AddComponent<DragDropHandler>();
+                commandBlock.InitializeBlock();
             }
-            dragHandler.SetFromPalette(true);
             
             spawnedBlocks.Add(blockObj);
+        }
+        
+        private void SetupBlockComponents(GameObject blockObj)
+        {
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Улучшенная настройка компонентов блоков
+            
+            // 1. RectTransform (должен быть по умолчанию)
+            RectTransform rectTransform = blockObj.GetComponent<RectTransform>();
+            if (rectTransform == null)
+            {
+                rectTransform = blockObj.AddComponent<RectTransform>();
+            }
+            
+            // Устанавливаем правильные настройки RectTransform для кнопок
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.sizeDelta = new Vector2(120, 60); // Больший размер для лучшей видимости
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.localScale = Vector3.one;
+            rectTransform.pivot = new Vector2(0.5f, 0.5f); // Центрирование
+            
+            // 2. Image для визуализации (только если его нет)
+            Image image = blockObj.GetComponent<Image>();
+            if (image == null)
+            {
+                image = blockObj.AddComponent<Image>();
+                image.color = new Color(0.2f, 0.7f, 0.2f, 1f); // Зеленый цвет для блоков
+                image.raycastTarget = true; // Важно для перетаскивания!
+                image.type = Image.Type.Sliced; // Для лучшего отображения
+            }
+            
+            // 3. CanvasGroup для визуальных эффектов
+            CanvasGroup canvasGroup = blockObj.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = blockObj.AddComponent<CanvasGroup>();
+            }
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.interactable = true;
+            
+            // 4. Button для обработки событий
+            Button button = blockObj.GetComponent<Button>();
+            if (button == null)
+            {
+                button = blockObj.AddComponent<Button>();
+            }
+            button.interactable = true;
+            
+            // 5. DragDropHandler для перетаскивания
+            RobotCoder.UI.DragDropHandler dragHandler = blockObj.GetComponent<RobotCoder.UI.DragDropHandler>();
+            if (dragHandler == null)
+            {
+                dragHandler = blockObj.AddComponent<RobotCoder.UI.DragDropHandler>();
+                Debug.Log($"✓ Создан DragDropHandler для блока {blockObj.name}");
+            }
+            
+            // 6. DragVisualFeedback для визуальной обратной связи
+            RobotCoder.UI.DragVisualFeedback visualFeedback = blockObj.GetComponent<RobotCoder.UI.DragVisualFeedback>();
+            if (visualFeedback == null)
+            {
+                visualFeedback = blockObj.AddComponent<RobotCoder.UI.DragVisualFeedback>();
+                Debug.Log($"✓ Создан DragVisualFeedback для блока {blockObj.name}");
+            }
+            
+            // 7. Убеждаемся, что у блока есть CommandBlock
+            CommandBlock commandBlock = blockObj.GetComponent<CommandBlock>();
+            if (commandBlock == null)
+            {
+                Debug.LogError($"✗ Блок {blockObj.name} не имеет CommandBlock компонента!");
+            }
+            else
+            {
+                Debug.Log($"✓ Блок {blockObj.name} имеет CommandBlock: {commandBlock.commandType}");
+            }
         }
 
         private CommandBlock AddCommandComponent(GameObject blockObj, CommandType commandType)

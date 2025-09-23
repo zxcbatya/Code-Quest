@@ -1,8 +1,7 @@
-using RobotCoder.UI;
 using TMPro;
 using UnityEngine;
 
-namespace UI
+namespace RobotCoder.UI
 {
     [RequireComponent(typeof(TextMeshProUGUI))]
     public class LocalizedText : MonoBehaviour
