@@ -218,7 +218,15 @@ namespace RobotCoder.UI
                 canvasGroup.blocksRaycasts = false;
             }
 
-            if (!isFromPalette)
+            if (isFromPalette)
+            {
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Скрываем оригинальный блок из палитры
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 0.1f; // Почти невидимый
+                }
+            }
+            else
             {
                 transform.localScale = originalScale * dragScale;
             }
@@ -427,7 +435,7 @@ namespace RobotCoder.UI
                 dragPreview = null;
             }
 
-            // Восстанавливаем визуальное состояние
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Восстанавливаем видимость блока из палитры
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = 1f;

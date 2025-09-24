@@ -39,15 +39,21 @@ namespace RobotCoder.UI
         
         private void InitializeComponents()
         {
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Правильный поиск компонентов
             backgroundImage = GetComponent<Image>();
             rectTransform = GetComponent<RectTransform>();
             
-            // Ищем существующие компоненты
-            borderImage = GetComponentInChildren<Image>();
-            feedbackText = GetComponentInChildren<TextMeshProUGUI>();
+            // Ищем дочерние компоненты только если они есть
+            if (transform.childCount > 0)
+            {
+                borderImage = GetComponentInChildren<Image>();
+                feedbackText = GetComponentInChildren<TextMeshProUGUI>();
+            }
             
             originalScale = rectTransform.localScale;
             originalColor = backgroundImage != null ? backgroundImage.color : Color.white;
+            
+            Debug.Log($"DragVisualFeedback инициализирован: backgroundImage={backgroundImage != null}, rectTransform={rectTransform != null}");
         }
         
         
@@ -71,8 +77,16 @@ namespace RobotCoder.UI
         {
             if (isAnimating) return;
             
-            StartCoroutine(AnimateScale(originalScale * 1.1f));
-            StartCoroutine(AnimateColor(originalColor * highlightIntensity));
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Простые анимации без корутин
+            if (rectTransform != null)
+            {
+                rectTransform.localScale = originalScale * 1.1f;
+            }
+            
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = originalColor * highlightIntensity;
+            }
         }
         
         /// <summary>
@@ -82,7 +96,11 @@ namespace RobotCoder.UI
         {
             if (isAnimating) return;
             
-            StartCoroutine(AnimateColor(validDropColor));
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мгновенная смена цвета
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = validDropColor;
+            }
         }
         
         /// <summary>
@@ -92,7 +110,11 @@ namespace RobotCoder.UI
         {
             if (isAnimating) return;
             
-            StartCoroutine(AnimateColor(invalidDropColor));
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мгновенная смена цвета
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = invalidDropColor;
+            }
         }
         
         /// <summary>
@@ -102,8 +124,16 @@ namespace RobotCoder.UI
         {
             if (isAnimating) return;
             
-            StartCoroutine(AnimateScale(originalScale));
-            StartCoroutine(AnimateColor(originalColor));
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мгновенное восстановление состояния
+            if (rectTransform != null)
+            {
+                rectTransform.localScale = originalScale;
+            }
+            
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = originalColor;
+            }
         }
         
         /// <summary>
@@ -111,7 +141,11 @@ namespace RobotCoder.UI
         /// </summary>
         public void ShowSuccessFeedback()
         {
-            StartCoroutine(SuccessAnimation());
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Упрощенная анимация успеха
+            if (backgroundImage != null)
+            {
+                StartCoroutine(QuickSuccessAnimation());
+            }
         }
         
         private System.Collections.IEnumerator AnimateScale(Vector3 targetScale)
@@ -155,29 +189,19 @@ namespace RobotCoder.UI
         }
         
         
-        private System.Collections.IEnumerator SuccessAnimation()
+        private System.Collections.IEnumerator QuickSuccessAnimation()
         {
-            // Быстрая анимация успеха
-            Vector3 originalScale = rectTransform.localScale;
-            Color originalColor = backgroundImage != null ? backgroundImage.color : Color.white;
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Быстрая и простая анимация успеха
+            if (backgroundImage == null) yield break;
             
-            // Увеличиваем и подсвечиваем зеленым
-            rectTransform.localScale = originalScale * 1.2f;
-            if (backgroundImage != null)
-            {
-                backgroundImage.color = validDropColor;
-            }
+            Color originalColor = backgroundImage.color;
             
-            yield return new WaitForSeconds(0.2f);
+            // Быстрая вспышка зеленого
+            backgroundImage.color = validDropColor;
+            yield return new WaitForSeconds(0.1f);
             
             // Возвращаем к нормальному состоянию
-            rectTransform.localScale = originalScale;
-            if (backgroundImage != null)
-            {
-                backgroundImage.color = originalColor;
-            }
-            
-            HideFeedback();
+            backgroundImage.color = originalColor;
         }
     }
 }
