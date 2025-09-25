@@ -11,7 +11,6 @@ namespace Core
         [SerializeField] private bool optimizeForWebGL = true;
         [SerializeField] private int targetFrameRate = 60;
         [SerializeField] private bool enableSrpBatcher = true;
-        [SerializeField] private float memoryWarningThreshold = 0.8f; // 80% от доступной памяти
         
         [Header("Quality Settings")]
         [SerializeField] private int antiAliasing = 2;

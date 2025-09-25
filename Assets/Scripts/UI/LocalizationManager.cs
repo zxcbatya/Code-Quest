@@ -102,7 +102,7 @@ namespace RobotCoder.UI
 
         private void UpdateAllTexts()
         {
-            LocalizedText[] localizedTexts = FindObjectsOfType<LocalizedText>();
+            LocalizedText[] localizedTexts = FindObjectsByType<LocalizedText>(FindObjectsSortMode.None);
             foreach (var localizedText in localizedTexts)
             {
                 localizedText.UpdateText();

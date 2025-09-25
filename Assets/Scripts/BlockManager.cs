@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
 public class BlockManager : MonoBehaviour
 {
@@ -19,13 +18,6 @@ public class BlockManager : MonoBehaviour
         {
             Vector3 localPosition = block.transform.localPosition;
             blockPositions.Add(localPosition);
-
-            Debug.Log($"Block: {block.name}, Local position: {localPosition}");
-        }
-
-        if (blocks.Length == 0)
-        {
-            Debug.LogWarning("Нет объектов");
         }
     }
 }

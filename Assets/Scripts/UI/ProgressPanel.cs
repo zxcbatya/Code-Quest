@@ -1,10 +1,10 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections;
 using Core;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace RobotCoder.UI
+namespace UI
 {
     public class ProgressPanel : MonoBehaviour
     {
@@ -27,10 +27,10 @@ namespace RobotCoder.UI
         [SerializeField] private float animationDuration = 0.5f;
         [SerializeField] private AnimationCurve progressCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-        private int totalGoals = 1;
-        private int completedGoals = 0;
-        private string[] levelHints;
-        private int currentHintIndex = 0;
+        private int _totalGoals = 1;
+        private int _completedGoals = 0;
+        private string[] _levelHints;
+        private int _currentHintIndex = 0;
 
         public System.Action OnAllGoalsCompleted;
 
@@ -57,8 +57,8 @@ namespace RobotCoder.UI
             if (levelTitleText) levelTitleText.text = title;
             if (objectiveText) objectiveText.text = objective;
             
-            totalGoals = goalCount;
-            completedGoals = 0;
+            _totalGoals = goalCount;
+            _completedGoals = 0;
             
             SetupGoalIcons();
             UpdateProgressDisplay();
@@ -72,7 +72,7 @@ namespace RobotCoder.UI
             {
                 if (goalIcons[i] != null)
                 {
-                    goalIcons[i].gameObject.SetActive(i < totalGoals);
+                    goalIcons[i].gameObject.SetActive(i < _totalGoals);
                     goalIcons[i].color = incompleteGoalColor;
                 }
             }
@@ -80,13 +80,13 @@ namespace RobotCoder.UI
 
         public void UpdateProgress(int completed)
         {
-            int oldCompleted = completedGoals;
-            completedGoals = Mathf.Clamp(completed, 0, totalGoals);
+            int oldCompleted = _completedGoals;
+            _completedGoals = Mathf.Clamp(completed, 0, _totalGoals);
             
-            StartCoroutine(AnimateProgress(oldCompleted, completedGoals));
+            StartCoroutine(AnimateProgress(oldCompleted, _completedGoals));
             UpdateGoalIcons();
             
-            if (completedGoals >= totalGoals)
+            if (_completedGoals >= _totalGoals)
             {
                 OnAllGoalsCompleted?.Invoke();
             }
@@ -96,11 +96,11 @@ namespace RobotCoder.UI
         {
             if (goalIcons == null) return;
 
-            for (int i = 0; i < goalIcons.Length && i < totalGoals; i++)
+            for (int i = 0; i < goalIcons.Length && i < _totalGoals; i++)
             {
                 if (goalIcons[i] != null)
                 {
-                    Color targetColor = i < completedGoals ? completedGoalColor : incompleteGoalColor;
+                    Color targetColor = i < _completedGoals ? completedGoalColor : incompleteGoalColor;
                     StartCoroutine(AnimateIconColor(goalIcons[i], targetColor));
                 }
             }
@@ -109,8 +109,8 @@ namespace RobotCoder.UI
         private IEnumerator AnimateProgress(int fromProgress, int toProgress)
         {
             float startTime = Time.time;
-            float fromValue = (float)fromProgress / totalGoals;
-            float toValue = (float)toProgress / totalGoals;
+            float fromValue = (float)fromProgress / _totalGoals;
+            float toValue = (float)toProgress / _totalGoals;
 
             while (Time.time - startTime < animationDuration)
             {
@@ -133,8 +133,8 @@ namespace RobotCoder.UI
         {
             if (progressText != null)
             {
-                int displayProgress = Mathf.RoundToInt(progress * totalGoals);
-                progressText.text = $"{displayProgress}/{totalGoals}";
+                int displayProgress = Mathf.RoundToInt(progress * _totalGoals);
+                progressText.text = $"{displayProgress}/{_totalGoals}";
             }
         }
 
@@ -157,20 +157,18 @@ namespace RobotCoder.UI
         {
             if (progressSlider) 
             {
-                progressSlider.value = totalGoals > 0 ? (float)completedGoals / totalGoals : 0f;
+                progressSlider.value = _totalGoals > 0 ? (float)_completedGoals / _totalGoals : 0f;
                 progressSlider.fillRect.GetComponent<Image>().color = progressBarColor;
             }
             
-            UpdateProgressText(totalGoals > 0 ? (float)completedGoals / totalGoals : 0f);
+            UpdateProgressText(_totalGoals > 0 ? (float)_completedGoals / _totalGoals : 0f);
         }
 
         private void LoadLevelHints()
         {
-            // Загружаем подсказки для текущего уровня
             string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             
-            // Примеры подсказок (в реальном проекте загружать из локализации)
-            levelHints = new string[]
+            _levelHints = new string[]
             {
                 "Перетащите блоки из палитры в рабочую область",
                 "Используйте кнопку СТАРТ для запуска программы",
@@ -181,14 +179,14 @@ namespace RobotCoder.UI
 
         public void ShowNextHint()
         {
-            if (levelHints == null || levelHints.Length == 0) return;
+            if (_levelHints == null || _levelHints.Length == 0) return;
             
             if (hintPanel) hintPanel.SetActive(true);
             
             if (hintText)
             {
-                hintText.text = levelHints[currentHintIndex];
-                currentHintIndex = (currentHintIndex + 1) % levelHints.Length;
+                hintText.text = _levelHints[_currentHintIndex];
+                _currentHintIndex = (_currentHintIndex + 1) % _levelHints.Length;
             }
             
             StartCoroutine(HideHintAfterDelay(3f));
@@ -235,15 +233,15 @@ namespace RobotCoder.UI
 
         public void CompleteGoal(int goalIndex)
         {
-            if (goalIndex >= 0 && goalIndex < totalGoals)
+            if (goalIndex >= 0 && goalIndex < _totalGoals)
             {
-                UpdateProgress(completedGoals + 1);
+                UpdateProgress(_completedGoals + 1);
             }
         }
 
         public void ResetProgress()
         {
-            completedGoals = 0;
+            _completedGoals = 0;
             UpdateProgressDisplay();
             UpdateGoalIcons();
         }

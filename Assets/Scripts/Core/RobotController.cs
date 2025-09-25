@@ -7,9 +7,8 @@ namespace RobotCoder.Core
     {
         public static RobotController Instance { get; private set; }
         
-        [Header("Настройки робота")]
         [SerializeField] private Vector2Int currentPosition = Vector2Int.zero;
-        [SerializeField] private int currentDirection = 0; // 0=Север, 1=Восток, 2=Юг, 3=Запад
+        [SerializeField] private int currentDirection = 0;
         [SerializeField] private float moveSpeed = 1f;
         
         private Vector2Int startPosition;
@@ -36,7 +35,6 @@ namespace RobotCoder.Core
             
             Vector2Int targetPosition = GetForwardPosition();
             
-            // Проверяем, можно ли двигаться
             if (IsValidPosition(targetPosition))
             {
                 currentPosition = targetPosition;
@@ -51,7 +49,7 @@ namespace RobotCoder.Core
         {
             if (isMoving) return false;
             
-            currentDirection = (currentDirection + 3) % 4; // Поворот против часовой стрелки
+            currentDirection = (currentDirection + 3) % 4;
             StartCoroutine(AnimateRotation(-90f));
             return true;
         }
@@ -60,7 +58,7 @@ namespace RobotCoder.Core
         {
             if (isMoving) return false;
             
-            currentDirection = (currentDirection + 1) % 4; // Поворот по часовой стрелке
+            currentDirection = (currentDirection + 1) % 4;
             StartCoroutine(AnimateRotation(90f));
             return true;
         }
@@ -71,7 +69,6 @@ namespace RobotCoder.Core
             
             Vector2Int targetPosition = GetForwardPosition();
             
-            // Прыжок может перепрыгивать препятствия
             if (IsValidPosition(targetPosition))
             {
                 currentPosition = targetPosition;
@@ -86,7 +83,6 @@ namespace RobotCoder.Core
         {
             if (isMoving) return false;
             
-            // Взаимодействие с объектами на текущей позиции
             Debug.Log($"Робот взаимодействует на позиции {currentPosition}");
             StartCoroutine(AnimateInteraction());
             return true;
@@ -97,7 +93,6 @@ namespace RobotCoder.Core
             currentPosition = startPosition;
             currentDirection = startDirection;
             
-            // Сбрасываем визуальную позицию
             transform.position = GridToWorldPosition(currentPosition);
             transform.rotation = DirectionToRotation(currentDirection);
         }
@@ -115,14 +110,11 @@ namespace RobotCoder.Core
         
         public bool IsOnGoal()
         {
-            // Проверяем, находится ли робот на цели
-            // Здесь будет проверка с LevelData
             return false;
         }
         
         public bool IsItemNearby()
         {
-            // Проверяем наличие предметов рядом
             return false;
         }
         
@@ -136,18 +128,16 @@ namespace RobotCoder.Core
         {
             switch (dir)
             {
-                case 0: return Vector2Int.up;    // Север
-                case 1: return Vector2Int.right; // Восток
-                case 2: return Vector2Int.down;  // Юг
-                case 3: return Vector2Int.left;  // Запад
+                case 0: return Vector2Int.up;
+                case 1: return Vector2Int.right;
+                case 2: return Vector2Int.down;
+                case 3: return Vector2Int.left;
                 default: return Vector2Int.up;
             }
         }
         
         private bool IsValidPosition(Vector2Int position)
         {
-            // Здесь будет проверка с игровой сеткой
-            // Пока что заглушка
             return position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8;
         }
         
@@ -223,7 +213,6 @@ namespace RobotCoder.Core
                 elapsed += Time.deltaTime;
                 float progress = elapsed / duration;
                 
-                // Параболическая траектория
                 Vector3 pos1 = Vector3.Lerp(startPos, midPos, progress);
                 Vector3 pos2 = Vector3.Lerp(midPos, targetPos, progress);
                 transform.position = Vector3.Lerp(pos1, pos2, progress);
@@ -244,7 +233,6 @@ namespace RobotCoder.Core
             Vector3 originalScale = transform.localScale;
             Vector3 biggerScale = originalScale * 1.2f;
             
-            // Увеличиваемся
             float duration = 0.2f;
             float elapsed = 0f;
             
@@ -256,7 +244,6 @@ namespace RobotCoder.Core
                 yield return null;
             }
             
-            // Возвращаемся к нормальному размеру
             elapsed = 0f;
             while (elapsed < duration)
             {

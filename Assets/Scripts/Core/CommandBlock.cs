@@ -1,4 +1,3 @@
-
 using RobotCoder.Core;
 using RobotCoder.UI;
 using TMPro;
@@ -33,18 +32,14 @@ namespace Core
         [SerializeField] protected Image backgroundImage;
         [SerializeField] protected Image iconImage;
         [SerializeField] protected TextMeshProUGUI commandText;
-        [SerializeField] protected Button blockButton;
         
-        [Header("Drag & Drop")]
-        [SerializeField] protected bool isDragging = false;
+        [Header("Состояние")]
         [SerializeField] protected bool isInWorkspace = false;
         [SerializeField] protected int executionOrder = 0;
         
         protected RectTransform rectTransform;
-        protected Canvas parentCanvas;
         protected CanvasGroup canvasGroup;
         
-        public bool IsDragging => isDragging;
         public bool IsInWorkspace => isInWorkspace;
         public int ExecutionOrder => executionOrder;
 
@@ -52,10 +47,6 @@ namespace Core
         {
             rectTransform = GetComponent<RectTransform>();
             canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-                
-            parentCanvas = GetComponentInParent<Canvas>();
             InitializeBlock();
         }
 
@@ -73,41 +64,23 @@ namespace Core
 
         public virtual string GetLocalizedCommandName()
         {
-            if (RobotCoder.UI.LocalizationManager.Instance != null)
+            if (LocalizationManager.Instance != null)
             {
-                return RobotCoder.UI.LocalizationManager.Instance.GetText(commandType.ToString().ToUpper());
+                return LocalizationManager.Instance.GetText(commandType.ToString().ToUpper());
             }
             return commandName;
         }
 
         public abstract bool Execute(RobotController robot);
         
-        public virtual void StartDrag()
-        {
-            isDragging = true;
-            canvasGroup.alpha = 0.8f;
-            canvasGroup.blocksRaycasts = false;
-            
-            transform.SetAsLastSibling();
-        }
-        
-        public virtual void EndDrag()
-        {
-            isDragging = false;
-            canvasGroup.alpha = 1f;
-            canvasGroup.blocksRaycasts = true;
-        }
-        
         public virtual void SetInWorkspace(bool inWorkspace, int order = 0)
         {
             isInWorkspace = inWorkspace;
             executionOrder = order;
             
-            // Визуальная обратная связь
             if (backgroundImage != null)
             {
-                backgroundImage.color = inWorkspace ? 
-                    blockColor * 1.2f : blockColor;
+                backgroundImage.color = inWorkspace ? blockColor * 1.2f : blockColor;
             }
         }
         
@@ -127,11 +100,10 @@ namespace Core
         
         protected virtual System.Collections.IEnumerator ExecutionHighlight()
         {
-            Color originalColor = backgroundImage.color;
-            Color highlightColor = Color.yellow;
+            if (backgroundImage == null) yield break;
             
-            // Подсветка при выполнении
-            backgroundImage.color = highlightColor;
+            Color originalColor = backgroundImage.color;
+            backgroundImage.color = Color.yellow;
             yield return new WaitForSeconds(0.5f);
             backgroundImage.color = originalColor;
         }

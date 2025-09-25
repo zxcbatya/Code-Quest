@@ -90,6 +90,7 @@ GameObject:
   - component: {fileID: 4665469822013113438}
   - component: {fileID: 4588119336633823437}
   - component: {fileID: 9097122366643590810}
+  - component: {fileID: 6325146798990301067}
   m_Layer: 5
   m_Name: CommandBlockButton
   m_TagString: Untagged
@@ -170,11 +171,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvas: {fileID: 0}
-  dragRectTransform: {fileID: 6923130364147655646}
-  canvasGroup: {fileID: 4665469822013113438}
   dragAlpha: 0.8
-  dragScale: 1.1
-  visualFeedback: {fileID: 0}
 --- !u!225 &4665469822013113438
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -206,8 +203,6 @@ MonoBehaviour:
   backgroundImage: {fileID: 5851717015045445459}
   iconImage: {fileID: 2850490585851578916}
   commandText: {fileID: 4967132987818381565}
-  blockButton: {fileID: 9097122366643590810}
-  isDragging: 1
   isInWorkspace: 0
   executionOrder: 0
 --- !u!114 &9097122366643590810
@@ -254,6 +249,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6325146798990301067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4968512928907285931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e80835fee8f29d3488fcc583c4578a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backgroundImage: {fileID: 5851717015045445459}
+  validDropColor: {r: 0.2, g: 0.8, b: 0.2, a: 0.8}
+  invalidDropColor: {r: 0.8, g: 0.2, b: 0.2, a: 0.8}
 --- !u!1 &6562063996639007748
 GameObject:
   m_ObjectHideFlags: 0
