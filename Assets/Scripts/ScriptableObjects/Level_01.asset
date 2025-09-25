@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4de5d9ed29c09f348852067a15b005c9, type: 3}
+  m_Name: Level_01
+  m_EditorClassIdentifier: 
+  levelIndex: 1
+  levelName: level one
+  description: asdsads
+  difficulty: 1
+  maxCommands: 10
+  optimalCommands: 5
+  startPosition: {x: 0, y: 0}
+  startDirection: 0
+  goalPositions:
+  - {x: 5, y: 5}
+  requireAllGoals: 1
+  gridWidth: 8
+  gridHeight: 8
+  allowMoveForward: 1
+  allowTurnLeft: 1
+  allowTurnRight: 1
+  allowJump: 0
+  allowInteract: 0
+  allowRepeat: 0
+  allowIf: 0
+  serializedGrid: []

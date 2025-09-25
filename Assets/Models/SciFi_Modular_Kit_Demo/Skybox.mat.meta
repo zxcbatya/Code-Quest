@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 390c7ebd737505b419591ce1ffb1cbcb
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 327705
+  packageName: 'Sci-Fi Interior Modular Kit [Demo]'
+  packageVersion: 1.0
+  assetPath: Assets/SciFi_Modular_Kit_Demo/Scene/Skybox.mat
+  uploadId: 776861
