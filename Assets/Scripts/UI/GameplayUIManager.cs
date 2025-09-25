@@ -82,6 +82,8 @@ namespace RobotCoder.UI
 
         private void SetupEventListeners()
         {
+            ClearEventListeners();
+
             startButton.onClick.AddListener(OnStartButtonClicked);
             resetButton.onClick.AddListener(OnResetButtonClicked);
             pauseButton.onClick.AddListener(OnPauseButtonClicked);
@@ -98,10 +100,38 @@ namespace RobotCoder.UI
             restartButton.onClick.AddListener(OnRetryButtonClicked);
             pauseMenuButton.onClick.AddListener(OnMenuButtonClicked);
 
+            var inputManager = InputManager.Instance;
 
-            InputManager.Instance?.RegisterKeyAction(KeyCode.Space, OnStartButtonClicked);
-            InputManager.Instance?.RegisterKeyAction(KeyCode.R, OnResetButtonClicked);
-            InputManager.Instance?.RegisterKeyAction(KeyCode.Escape, OnPauseButtonClicked);
+            inputManager.RegisterKeyAction(KeyCode.Space, OnStartButtonClicked);
+            inputManager.RegisterKeyAction(KeyCode.R, OnResetButtonClicked);
+            inputManager.RegisterKeyAction(KeyCode.Escape, OnPauseButtonClicked);
+        }
+
+        private void ClearEventListeners()
+        {
+            startButton.onClick.RemoveAllListeners();
+            resetButton.onClick.RemoveAllListeners();
+            pauseButton.onClick.RemoveAllListeners();
+            menuButton.onClick.RemoveAllListeners();
+
+            if (winNextLevelButton != null) winNextLevelButton.onClick.RemoveAllListeners();
+            if (winRetryButton != null) winRetryButton.onClick.RemoveAllListeners();
+            if (winMenuButton != null) winMenuButton.onClick.RemoveAllListeners();
+
+            if (loseRetryButton != null) loseRetryButton.onClick.RemoveAllListeners();
+            if (loseMenuButton != null) loseMenuButton.onClick.RemoveAllListeners();
+
+            if (resumeButton != null) resumeButton.onClick.RemoveAllListeners();
+            if (restartButton != null) restartButton.onClick.RemoveAllListeners();
+            if (pauseMenuButton != null) pauseMenuButton.onClick.RemoveAllListeners();
+
+            var inputManager = InputManager.Instance;
+            if (inputManager != null)
+            {
+                inputManager.UnregisterKeyAction(KeyCode.Space);
+                inputManager.UnregisterKeyAction(KeyCode.R);
+                inputManager.UnregisterKeyAction(KeyCode.Escape);
+            }
         }
 
         private void LoadLevelData()
@@ -161,7 +191,6 @@ namespace RobotCoder.UI
 
             OnPauseProgram?.Invoke();
             AudioManager.Instance?.PlaySound("button_click");
-
         }
 
         private void OnResumeButtonClicked()
@@ -178,6 +207,8 @@ namespace RobotCoder.UI
 
         private void OnMenuButtonClicked()
         {
+            ResumeGame();
+
             AudioManager.Instance?.PlaySound("button_click");
             SceneManager.LoadScene($"MainMenu");
         }
@@ -191,10 +222,12 @@ namespace RobotCoder.UI
 
             if (Application.CanStreamedLevelBeLoaded(nextSceneName))
             {
+                ResumeGame();
                 SceneManager.LoadScene(nextSceneName);
             }
             else
             {
+                ResumeGame();
                 SceneManager.LoadScene($"MainMenu");
             }
         }
@@ -202,12 +235,8 @@ namespace RobotCoder.UI
         private void OnRetryButtonClicked()
         {
             AudioManager.Instance?.PlaySound("button_click");
+            ResumeGame();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
-
-        private void OnSpeedSliderChanged(float value)
-        {
-            OnSpeedChanged?.Invoke(value);
         }
 
         public void SetGameRunning(bool running)
@@ -322,11 +351,26 @@ namespace RobotCoder.UI
             {
                 StartCoroutine(AnimatePanel(pausePanel, false));
                 pauseButton.gameObject.SetActive(true);
-
             }
 
             _isGamePaused = show;
             Time.timeScale = show ? 0f : 1f;
+        }
+
+        // Новый метод для снятия паузы
+        private void ResumeGame()
+        {
+            _isGamePaused = false;
+            Time.timeScale = 1f;
+            if (pausePanel != null)
+            {
+                pausePanel.SetActive(false);
+            }
+
+            if (pauseButton != null)
+            {
+                pauseButton.gameObject.SetActive(true);
+            }
         }
 
         private static string FormatTime(float seconds)
@@ -373,7 +417,15 @@ namespace RobotCoder.UI
 
         private void OnDestroy()
         {
+            // Очищаем все слушатели событий при уничтожении объекта
+            ClearEventListeners();
             Time.timeScale = 1f;
+        }
+
+        private void OnDisable()
+        {
+            // Очищаем слушатели событий при отключении объекта
+            ClearEventListeners();
         }
     }
 }

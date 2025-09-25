@@ -8,26 +8,19 @@ namespace Core
     {
         public static EffectManager Instance { get; private set; }
         
-        [Header("Screen Effects")]
-        [SerializeField] private Animator screenAnimator;
-        
-        [Header("UI Effects")]
-        [SerializeField] private Animator uiAnimator;
-        
-        [Header("Particle Effects (merged from ParticleManager)")]
-        [SerializeField] private ParticleSystem successParticles;
-        [SerializeField] private ParticleSystem failParticles;
-        [SerializeField] private ParticleSystem collectParticles;
-        [SerializeField] private ParticleSystem explosionParticles;
-        
-        private Dictionary<string, ParticleSystem> particleSystems = new Dictionary<string, ParticleSystem>();
+        [Header("Effect Prefabs")]
+        [SerializeField] private ParticleSystem moveEffect;
+        [SerializeField] private ParticleSystem turnEffect;
+        [SerializeField] private ParticleSystem jumpEffect;
+        [SerializeField] private ParticleSystem interactEffect;
+        [SerializeField] private ParticleSystem goalReachedEffect;
+        [SerializeField] private ParticleSystem levelCompleteEffect;
         
         private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
-                InitializeParticleSystems();
             }
             else
             {
@@ -35,106 +28,57 @@ namespace Core
             }
         }
         
-        public void PlayScreenShake(float intensity = 1f, float duration = 0.5f)
+        public void PlayMoveEffect(Vector3 position)
         {
-            if (screenAnimator != null)
+            if (moveEffect != null)
             {
-                screenAnimator.SetFloat("ShakeIntensity", intensity);
-                screenAnimator.SetTrigger("Shake");
-                
-                // Сбрасываем интенсивность через некоторое время
-                StartCoroutine(ResetShakeIntensity(duration));
+                ParticleSystem effect = Instantiate(moveEffect, position, Quaternion.identity);
+                Destroy(effect.gameObject, effect.main.duration);
             }
         }
         
-        private IEnumerator ResetShakeIntensity(float delay)
+        public void PlayTurnEffect(Vector3 position)
         {
-            yield return new WaitForSeconds(delay);
-            if (screenAnimator != null)
+            if (turnEffect != null)
             {
-                screenAnimator.SetFloat("ShakeIntensity", 0f);
+                ParticleSystem effect = Instantiate(turnEffect, position, Quaternion.identity);
+                Destroy(effect.gameObject, effect.main.duration);
             }
         }
         
-        public void PlayScreenFlash(Color color, float duration = 0.2f)
+        public void PlayJumpEffect(Vector3 position)
         {
-            if (screenAnimator != null)
+            if (jumpEffect != null)
             {
-                screenAnimator.SetTrigger("Flash");
+                ParticleSystem effect = Instantiate(jumpEffect, position, Quaternion.identity);
+                Destroy(effect.gameObject, effect.main.duration);
             }
         }
         
-        public void PlayUIPulse(string triggerName = "Pulse")
+        public void PlayInteractEffect(Vector3 position)
         {
-            if (uiAnimator != null)
+            if (interactEffect != null)
             {
-                uiAnimator.SetTrigger(triggerName);
+                ParticleSystem effect = Instantiate(interactEffect, position, Quaternion.identity);
+                Destroy(effect.gameObject, effect.main.duration);
             }
         }
         
-        public void PlayTransitionEffect(string transitionName)
+        public void PlayGoalReachedEffect(Vector3 position)
         {
-            if (screenAnimator != null)
+            if (goalReachedEffect != null)
             {
-                screenAnimator.SetTrigger(transitionName);
+                ParticleSystem effect = Instantiate(goalReachedEffect, position, Quaternion.identity);
+                Destroy(effect.gameObject, effect.main.duration);
             }
         }
         
-        // --- Particle API (from ParticleManager) ---
-        private void InitializeParticleSystems()
+        public void PlayLevelCompleteEffect(Vector3 position)
         {
-            if (successParticles != null)
-                particleSystems["success"] = successParticles;
-            if (failParticles != null)
-                particleSystems["fail"] = failParticles;
-            if (collectParticles != null)
-                particleSystems["collect"] = collectParticles;
-            if (explosionParticles != null)
-                particleSystems["explosion"] = explosionParticles;
-        }
-        
-        public void PlayParticleEffect(string effectName, Vector3 position)
-        {
-            if (particleSystems.ContainsKey(effectName))
+            if (levelCompleteEffect != null)
             {
-                ParticleSystem particleSystem = particleSystems[effectName];
-                if (particleSystem != null)
-                {
-                    ParticleSystem instance = Instantiate(particleSystem, position, Quaternion.identity);
-                    instance.Play();
-                    Destroy(instance.gameObject, instance.main.duration);
-                }
-            }
-        }
-        
-        public void PlaySuccessEffect(Vector3 position)
-        {
-            PlayParticleEffect("success", position);
-        }
-        
-        public void PlayFailEffect(Vector3 position)
-        {
-            PlayParticleEffect("fail", position);
-        }
-        
-        public void PlayCollectEffect(Vector3 position)
-        {
-            PlayParticleEffect("collect", position);
-        }
-        
-        public void PlayExplosionEffect(Vector3 position)
-        {
-            PlayParticleEffect("explosion", position);
-        }
-        
-        public void StopAllEffects()
-        {
-            foreach (var kvp in particleSystems)
-            {
-                if (kvp.Value != null)
-                {
-                    kvp.Value.Stop();
-                }
+                ParticleSystem effect = Instantiate(levelCompleteEffect, position, Quaternion.identity);
+                Destroy(effect.gameObject, effect.main.duration);
             }
         }
     }

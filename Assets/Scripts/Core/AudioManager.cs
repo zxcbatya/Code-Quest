@@ -1,28 +1,30 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Core
 {
     public class AudioManager : MonoBehaviour
     {
         public static AudioManager Instance { get; private set; }
-
-        [Header("Audio Sources")]
+        
+        [System.Serializable]
+        public class Sound
+        {
+            public string name;
+            public AudioClip clip;
+            [Range(0f, 1f)] public float volume = 1f;
+            [Range(0.1f, 3f)] public float pitch = 1f;
+        }
+        
+        [Header("Audio Settings")]
+        [SerializeField] private AudioSource soundSource;
         [SerializeField] private AudioSource musicSource;
-        [SerializeField] private AudioSource sfxSource;
-
-        [Header("Sound Effects")]
-        [SerializeField] private AudioClip dragStartSound;
-        [SerializeField] private AudioClip dropSuccessSound;
-        [SerializeField] private AudioClip dropFailSound;
-        [SerializeField] private AudioClip buttonClickSound;
-        [SerializeField] private AudioClip robotMoveSound;
-        [SerializeField] private AudioClip robotTurnSound;
-        [SerializeField] private AudioClip successSound;
-        [SerializeField] private AudioClip failSound;
-
-        private Dictionary<string, AudioClip> soundDict = new Dictionary<string, AudioClip>();
-
+        [SerializeField] private Sound[] sounds;
+        [SerializeField] private AudioClip[] musicTracks;
+        
+        private Dictionary<string, Sound> soundDictionary;
+        private int currentMusicIndex = 0;
+        
         private void Awake()
         {
             if (Instance == null)
@@ -36,50 +38,109 @@ namespace Core
                 Destroy(gameObject);
             }
         }
-
+        
         private void InitializeSounds()
         {
-            soundDict["drag_start"] = dragStartSound;
-            soundDict["drop_success"] = dropSuccessSound;
-            soundDict["drop_fail"] = dropFailSound;
-            soundDict["button_click"] = buttonClickSound;
-            soundDict["robot_move"] = robotMoveSound;
-            soundDict["robot_turn"] = robotTurnSound;
-            soundDict["success"] = successSound;
-            soundDict["fail"] = failSound;
+            soundDictionary = new Dictionary<string, Sound>();
+            
+            foreach (Sound sound in sounds)
+            {
+                soundDictionary[sound.name] = sound;
+            }
+            
+            // Start playing music
+            if (musicSource != null && musicTracks.Length > 0)
+            {
+                PlayMusicTrack(0);
+            }
         }
-
+        
         public void PlaySound(string soundName)
         {
-            if (soundDict.TryGetValue(soundName, out AudioClip clip) && clip != null)
+            if (soundSource == null || soundDictionary == null) return;
+            
+            if (soundDictionary.TryGetValue(soundName, out Sound sound))
             {
-                sfxSource.PlayOneShot(clip);
+                soundSource.pitch = sound.pitch;
+                soundSource.PlayOneShot(sound.clip, sound.volume);
+            }
+            else
+            {
+                Debug.LogWarning($"Звук с именем {soundName} не найден!");
             }
         }
-
-        public void PlayMusic(AudioClip musicClip, bool loop = true)
+        
+        public void PlaySound(string soundName, float volume)
         {
-            if (musicSource != null && musicClip != null)
+            if (soundSource == null || soundDictionary == null) return;
+            
+            if (soundDictionary.TryGetValue(soundName, out Sound sound))
             {
-                musicSource.clip = musicClip;
-                musicSource.loop = loop;
-                musicSource.Play();
+                soundSource.pitch = sound.pitch;
+                soundSource.PlayOneShot(sound.clip, volume);
+            }
+            else
+            {
+                Debug.LogWarning($"Звук с именем {soundName} не найден!");
             }
         }
-
+        
+        public void PlayMusicTrack(int trackIndex)
+        {
+            if (musicSource == null || musicTracks.Length == 0) return;
+            
+            if (trackIndex >= 0 && trackIndex < musicTracks.Length)
+            {
+                musicSource.clip = musicTracks[trackIndex];
+                musicSource.loop = true;
+                musicSource.Play();
+                currentMusicIndex = trackIndex;
+            }
+        }
+        
+        public void PlayNextMusicTrack()
+        {
+            currentMusicIndex = (currentMusicIndex + 1) % musicTracks.Length;
+            PlayMusicTrack(currentMusicIndex);
+        }
+        
+        public void SetSoundVolume(float volume)
+        {
+            if (soundSource != null)
+            {
+                soundSource.volume = volume;
+            }
+        }
+        
         public void SetMusicVolume(float volume)
         {
             if (musicSource != null)
             {
-                musicSource.volume = Mathf.Clamp01(volume);
+                musicSource.volume = volume;
             }
         }
-
-        public void SetSFXVolume(float volume)
+        
+        public void StopMusic()
         {
-            if (sfxSource != null)
+            if (musicSource != null)
             {
-                sfxSource.volume = Mathf.Clamp01(volume);
+                musicSource.Stop();
+            }
+        }
+        
+        public void PauseMusic()
+        {
+            if (musicSource != null)
+            {
+                musicSource.Pause();
+            }
+        }
+        
+        public void ResumeMusic()
+        {
+            if (musicSource != null)
+            {
+                musicSource.UnPause();
             }
         }
     }

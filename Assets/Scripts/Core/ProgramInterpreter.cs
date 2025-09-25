@@ -28,6 +28,7 @@ namespace RobotCoder.Core
             if (Instance == null)
             {
                 Instance = this;
+                DontDestroyOnLoad(gameObject);
             }
             else
             {
@@ -156,6 +157,16 @@ namespace RobotCoder.Core
         public int GetRemainingCommands()
         {
             return commandQueue.Count;
+        }
+        
+        private void OnDestroy()
+        {
+            // Очищаем события при уничтожении объекта
+            StopExecution();
+            OnProgramStarted = null;
+            OnProgramCompleted = null;
+            OnProgramFailed = null;
+            OnCommandExecuted = null;
         }
     }
 }

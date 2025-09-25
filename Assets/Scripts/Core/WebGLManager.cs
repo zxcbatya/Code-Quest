@@ -7,19 +7,12 @@ namespace Core
     {
         public static WebGLManager Instance { get; private set; }
         
-        [Header("WebGL Optimization")]
-        [SerializeField] private bool optimizeForWebGL = true;
-        [SerializeField] private int targetFrameRate = 60;
-        [SerializeField] private bool enableSrpBatcher = true;
+        [Header("WebGL Settings")]
+        [SerializeField] private bool enableWebGLFeatures = true;
+        [SerializeField] private bool enableFullscreen = true;
+        [SerializeField] private bool enableCursorLock = true;
         
-        [Header("Quality Settings")]
-        [SerializeField] private int antiAliasing = 2;
-        [SerializeField] private bool enableShadows = true;
-        [SerializeField] private int shadowResolution = 2; // 0=Low, 1=Medium, 2=High, 3=VeryHigh
-        
-        private bool isWebGL;
-        private float lastMemoryWarningTime;
-        private const float MEMORY_WARNING_COOLDOWN = 30f; // 30 секунд между предупреждениями
+        private bool isFullscreen = false;
         
         private void Awake()
         {
@@ -36,136 +29,70 @@ namespace Core
         
         private void Start()
         {
-            // Проверяем, запущена ли игра в WebGL
-            isWebGL = Application.platform == RuntimePlatform.WebGLPlayer;
-            
-            if (isWebGL && optimizeForWebGL)
+            if (enableWebGLFeatures)
             {
-                OptimizeForWebGL();
+                InitializeWebGLFeatures();
             }
         }
         
-        private void OptimizeForWebGL()
+        private void InitializeWebGLFeatures()
         {
-            // Устанавливаем целевой FPS
-            Application.targetFrameRate = targetFrameRate;
+            // Set default quality settings for WebGL
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = 60;
             
-            // Включаем SRP Batcher, если проект использует SRP (URP/HDRP)
-            if (enableSrpBatcher)
-            {
-                GraphicsSettings.useScriptableRenderPipelineBatching = true;
-            }
-            
-            // Настраиваем сглаживание
-            QualitySettings.antiAliasing = antiAliasing;
-            
-            // Настраиваем тени
-            QualitySettings.shadows = enableShadows ? ShadowQuality.All : ShadowQuality.Disable;
-            QualitySettings.shadowResolution = (ShadowResolution)shadowResolution;
-            
-            // Оптимизируем настройки качества
-            QualitySettings.vSyncCount = 0; // Отключаем VSync для лучшей производительности
-            QualitySettings.maxQueuedFrames = 1; // Минимизируем задержку
-            
-            Debug.Log("WebGL optimization applied");
+            Debug.Log("WebGL функции инициализированы");
         }
         
-        private void Update()
+        public void ToggleFullscreen()
         {
-            // Проверяем использование памяти
-            CheckMemoryUsage();
+            if (!enableWebGLFeatures || !enableFullscreen) return;
+            
+            #if UNITY_WEBGL && !UNITY_EDITOR
+            // In a real implementation, you would use JavaScript to toggle fullscreen
+            isFullscreen = !isFullscreen;
+            Debug.Log($"Полноэкранный режим: {isFullscreen}");
+            #endif
         }
         
-        private void CheckMemoryUsage()
+        public void LockCursor()
         {
-            if (!isWebGL) return;
+            if (!enableWebGLFeatures || !enableCursorLock) return;
             
-            // В WebGL сложно точно измерить использование памяти,
-            // но мы можем отслеживать общую производительность
-            if (Time.time - lastMemoryWarningTime > MEMORY_WARNING_COOLDOWN)
-            {
-                // Примерный расчет нагрузки
-                float fps = 1.0f / Time.deltaTime;
-                if (fps < targetFrameRate * 0.7f) // Если FPS ниже 70% от целевого
-                {
-                    HandleMemoryWarning();
-                }
-            }
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         
-        private void HandleMemoryWarning()
+        public void UnlockCursor()
         {
-            lastMemoryWarningTime = Time.time;
+            if (!enableWebGLFeatures || !enableCursorLock) return;
             
-            // Реагируем на предупреждение о памяти
-            Debug.Log("Memory warning detected. Optimizing...");
-            
-            // Уменьшаем качество графики
-            if (QualitySettings.antiAliasing > 0)
-            {
-                QualitySettings.antiAliasing = Mathf.Max(0, QualitySettings.antiAliasing - 2);
-            }
-            
-            // Отключаем тени при необходимости
-            if (QualitySettings.shadows != ShadowQuality.Disable)
-            {
-                QualitySettings.shadows = ShadowQuality.Disable;
-            }
-            
-            // Вызываем сборку мусора
-            System.GC.Collect();
-        }
-        
-        public void ForceGarbageCollection()
-        {
-            if (isWebGL)
-            {
-                System.GC.Collect();
-                Debug.Log("Garbage collection forced");
-            }
-        }
-        
-        public bool IsWebGL()
-        {
-            return isWebGL;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
         
         public void SetQualityLevel(int level)
         {
-            if (isWebGL)
-            {
-                QualitySettings.SetQualityLevel(level, true);
-            }
+            if (!enableWebGLFeatures) return;
+            
+            QualitySettings.SetQualityLevel(level);
         }
         
-        public int GetCurrentQualityLevel()
+        public void SetFrameRate(int frameRate)
         {
-            return QualitySettings.GetQualityLevel();
+            if (!enableWebGLFeatures) return;
+            
+            Application.targetFrameRate = frameRate;
         }
         
-        public void ReduceQuality()
+        public bool IsWebGLFeaturesEnabled()
         {
-            if (isWebGL)
-            {
-                int currentLevel = QualitySettings.GetQualityLevel();
-                if (currentLevel > 0)
-                {
-                    QualitySettings.SetQualityLevel(currentLevel - 1, true);
-                }
-            }
+            return enableWebGLFeatures;
         }
         
-        public void IncreaseQuality()
+        public bool IsFullscreen()
         {
-            if (isWebGL)
-            {
-                int currentLevel = QualitySettings.GetQualityLevel();
-                int maxLevel = QualitySettings.names.Length - 1;
-                if (currentLevel < maxLevel)
-                {
-                    QualitySettings.SetQualityLevel(currentLevel + 1, true);
-                }
-            }
+            return isFullscreen;
         }
     }
 }

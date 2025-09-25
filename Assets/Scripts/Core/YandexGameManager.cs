@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 namespace Core
 {
@@ -7,12 +6,13 @@ namespace Core
     {
         public static YandexGameManager Instance { get; private set; }
         
-        [Header("Yandex Settings")]
-        [SerializeField] private bool enableYandexIntegration = true;
-        [SerializeField] private string leaderboardName = "level_progress";
+        [Header("Yandex Games Settings")]
+        [SerializeField] private bool enableYandexFeatures = true;
+        [SerializeField] private bool enableLeaderboards = true;
+        [SerializeField] private bool enableAdvertisements = true;
+        [SerializeField] private bool enableInAppPurchases = true;
         
-        private bool isYandexAvailable = false;
-        private bool isPlayerAuthorized = false;
+        private bool isInitialized = false;
         
         private void Awake()
         {
@@ -20,6 +20,7 @@ namespace Core
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                InitializeYandexGames();
             }
             else
             {
@@ -27,110 +28,70 @@ namespace Core
             }
         }
         
-        private void Start()
+        private void InitializeYandexGames()
         {
-            if (enableYandexIntegration)
-            {
-                InitializeYandexIntegration();
-            }
+            if (!enableYandexFeatures) return;
+            
+            // In a real implementation, you would initialize the Yandex Games SDK here
+            // For now, we'll just simulate initialization
+            isInitialized = true;
+            Debug.Log("Yandex Games SDK инициализирован");
         }
         
-        private void InitializeYandexIntegration()
+        public void ShowAdvertisement()
         {
-            // Проверяем доступность Yandex Games API
-            #if UNITY_WEBGL
-            isYandexAvailable = CheckYandexAvailability();
-            #endif
+            if (!enableYandexFeatures || !enableAdvertisements) return;
+            if (!isInitialized) return;
             
-            if (isYandexAvailable)
-            {
-                // Авторизуем игрока
-                AuthorizePlayer();
-            }
+            // In a real implementation, you would show an advertisement here
+            Debug.Log("Показ рекламы");
         }
         
-        private bool CheckYandexAvailability()
+        public void SubmitScore(string leaderboardName, int score)
         {
-            // В WebGL проверяем наличие Yandex API
-            #if UNITY_WEBGL
-            try
-            {
-                // Проверяем, доступен ли объект ysdk
-                // Это псевдокод, реальная реализация зависит от Yandex Games SDK
-                return Application.platform == RuntimePlatform.WebGLPlayer;
-            }
-            catch
-            {
-                return false;
-            }
-            #else
-            return false;
-            #endif
+            if (!enableYandexFeatures || !enableLeaderboards) return;
+            if (!isInitialized) return;
+            
+            // In a real implementation, you would submit the score to Yandex leaderboard
+            Debug.Log($"Счет {score} отправлен в таблицу лидеров {leaderboardName}");
         }
         
-        private void AuthorizePlayer()
+        public void PurchaseItem(string productId)
         {
-            if (!isYandexAvailable) return;
+            if (!enableYandexFeatures || !enableInAppPurchases) return;
+            if (!isInitialized) return;
             
-            // В реальной реализации здесь будет код авторизации через Yandex Games SDK
-            // ysdk.auth.openAuthDialog().then(...)
-            
-            isPlayerAuthorized = true;
+            // In a real implementation, you would initiate an in-app purchase
+            Debug.Log($"Покупка товара {productId}");
         }
         
-        public void SaveToLeaderboard(int score)
+        public void ShowLeaderboard(string leaderboardName)
         {
-            if (!isYandexAvailable || !isPlayerAuthorized) return;
+            if (!enableYandexFeatures || !enableLeaderboards) return;
+            if (!isInitialized) return;
             
-            // В реальной реализации здесь будет код сохранения результата
-            // ysdk.leaderboards.setLeaderboardScore(leaderboardName, score);
-            
-            Debug.Log($"Saving score {score} to leaderboard {leaderboardName}");
+            // In a real implementation, you would show the leaderboard
+            Debug.Log($"Показ таблицы лидеров {leaderboardName}");
         }
         
-        public void ShowLeaderboard()
+        public bool IsYandexGamesEnabled()
         {
-            if (!isYandexAvailable || !isPlayerAuthorized) return;
-            
-            // В реальной реализации здесь будет код отображения таблицы лидеров
-            // ysdk.leaderboards.getLeaderboardEntries(leaderboardName);
-            
-            Debug.Log($"Showing leaderboard {leaderboardName}");
+            return enableYandexFeatures && isInitialized;
         }
         
-        public void ShowFullscreenAd()
+        public bool AreLeaderboardsEnabled()
         {
-            if (!isYandexAvailable || !isPlayerAuthorized) return;
-            
-            // В реальной реализации здесь будет код показа рекламы
-            // ysdk.adv.showFullscreenAdv();
-            
-            Debug.Log("Showing fullscreen ad");
+            return enableYandexFeatures && enableLeaderboards && isInitialized;
         }
         
-        public void ShowRewardedAd(System.Action<bool> onComplete)
+        public bool AreAdvertisementsEnabled()
         {
-            if (!isYandexAvailable || !isPlayerAuthorized) 
-            {
-                onComplete?.Invoke(false);
-                return;
-            }
-            
-            // В реальной реализации здесь будет код показа вознаграждаемой рекламы
-            // ysdk.adv.showRewardedVideo().then(() => onComplete?.Invoke(true));
-            
-            Debug.Log("Showing rewarded ad");
-            onComplete?.Invoke(true); // Для тестирования
+            return enableYandexFeatures && enableAdvertisements && isInitialized;
         }
         
-        public bool IsYandexAvailable()
+        public bool AreInAppPurchasesEnabled()
         {
-            return isYandexAvailable;
-        }
-        
-        public bool IsPlayerAuthorized()
-        {
-            return isPlayerAuthorized;
+            return enableYandexFeatures && enableInAppPurchases && isInitialized;
         }
     }
 }

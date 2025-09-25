@@ -1,28 +1,27 @@
 using UnityEngine;
 using System.Collections.Generic;
-using RobotCoder.UI;
 
 namespace Core
 {
-    [System.Serializable]
-    public class Achievement
-    {
-        public string id;
-        public string title;
-        public string description;
-        public bool isUnlocked;
-        public int progress;
-        public int targetProgress;
-    }
-    
     public class AchievementManager : MonoBehaviour
     {
         public static AchievementManager Instance { get; private set; }
         
-        [Header("Achievements")]
-        [SerializeField] private List<Achievement> achievements = new List<Achievement>();
+        [System.Serializable]
+        public class Achievement
+        {
+            public string id;
+            public string name;
+            public string description;
+            public bool isUnlocked;
+            public int progress;
+            public int targetProgress;
+        }
         
-        private const string ACHIEVEMENT_PREFIX = "Achievement_";
+        [Header("Achievements")]
+        [SerializeField] private Achievement[] achievements;
+        
+        private Dictionary<string, Achievement> achievementDictionary;
         
         private void Awake()
         {
@@ -30,7 +29,7 @@ namespace Core
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-                LoadAchievements();
+                InitializeAchievements();
             }
             else
             {
@@ -38,131 +37,87 @@ namespace Core
             }
         }
         
-        private void LoadAchievements()
+        private void InitializeAchievements()
         {
-            // Инициализируем достижения, если их нет
-            if (achievements.Count == 0)
-            {
-                InitializeDefaultAchievements();
-            }
+            achievementDictionary = new Dictionary<string, Achievement>();
             
-            // Загружаем прогресс достижений
-            foreach (Achievement achievement in achievements)
+            foreach (var achievement in achievements)
             {
-                string key = ACHIEVEMENT_PREFIX + achievement.id;
-                achievement.isUnlocked = SaveManager.LoadSettings(key, 0) == 1;
-                
-                string progressKey = ACHIEVEMENT_PREFIX + achievement.id + "_Progress";
-                achievement.progress = SaveManager.LoadSettings(progressKey, 0);
+                achievementDictionary[achievement.id] = achievement;
+                LoadAchievementProgress(achievement);
             }
         }
         
-        private void InitializeDefaultAchievements()
+        private void LoadAchievementProgress(Achievement achievement)
         {
-            achievements.Add(new Achievement
-            {
-                id = "first_level",
-                title = "Первый шаг",
-                description = "Пройдите первый уровень",
-                targetProgress = 1
-            });
-            
-            achievements.Add(new Achievement
-            {
-                id = "five_levels",
-                title = "Пять уровней",
-                description = "Пройдите пять уровней",
-                targetProgress = 5
-            });
-            
-            achievements.Add(new Achievement
-            {
-                id = "ten_levels",
-                title = "Десять уровней",
-                description = "Пройдите десять уровней",
-                targetProgress = 10
-            });
-            
-            achievements.Add(new Achievement
-            {
-                id = "perfect_level",
-                title = "Идеальное выполнение",
-                description = "Пройдите уровень с 3 звездами",
-                targetProgress = 1
-            });
-            
-            achievements.Add(new Achievement
-            {
-                id = "speed_runner",
-                title = "Скоростной бегун",
-                description = "Пройдите уровень за минимальное количество команд",
-                targetProgress = 1
-            });
+            achievement.isUnlocked = PlayerPrefs.GetInt($"Achievement_{achievement.id}_Unlocked", 0) == 1;
+            achievement.progress = PlayerPrefs.GetInt($"Achievement_{achievement.id}_Progress", 0);
         }
         
         public void UnlockAchievement(string id)
         {
-            Achievement achievement = GetAchievement(id);
-            if (achievement != null && !achievement.isUnlocked)
+            if (achievementDictionary.TryGetValue(id, out Achievement achievement))
             {
-                achievement.isUnlocked = true;
-                SaveManager.SaveSettings(ACHIEVEMENT_PREFIX + id, 1);
-                
-                // Показываем уведомление о достижении
-                HintManager.Instance?.ShowHint($"Достижение разблокировано: {achievement.title}");
-            }
-        }
-        
-        public void UpdateAchievementProgress(string id, int progress)
-        {
-            Achievement achievement = GetAchievement(id);
-            if (achievement != null && !achievement.isUnlocked)
-            {
-                achievement.progress = progress;
-                SaveManager.SaveSettings(ACHIEVEMENT_PREFIX + id + "_Progress", progress);
-                
-                // Проверяем, достигнута ли цель
-                if (achievement.progress >= achievement.targetProgress)
+                if (!achievement.isUnlocked)
                 {
-                    UnlockAchievement(id);
+                    achievement.isUnlocked = true;
+                    PlayerPrefs.SetInt($"Achievement_{id}_Unlocked", 1);
+                    PlayerPrefs.Save();
+                    
+                    Debug.Log($"Достижение разблокировано: {achievement.name}");
+                    // Here you could trigger UI notifications, sounds, etc.
                 }
             }
         }
         
-        private Achievement GetAchievement(string id)
+        public void AddProgressToAchievement(string id, int progress)
         {
-            foreach (Achievement achievement in achievements)
+            if (achievementDictionary.TryGetValue(id, out Achievement achievement))
             {
-                if (achievement.id == id)
+                if (!achievement.isUnlocked)
                 {
-                    return achievement;
+                    achievement.progress += progress;
+                    PlayerPrefs.SetInt($"Achievement_{id}_Progress", achievement.progress);
+                    
+                    if (achievement.progress >= achievement.targetProgress)
+                    {
+                        UnlockAchievement(id);
+                    }
+                    
+                    PlayerPrefs.Save();
                 }
             }
-            return null;
         }
         
         public bool IsAchievementUnlocked(string id)
         {
-            Achievement achievement = GetAchievement(id);
-            return achievement != null && achievement.isUnlocked;
-        }
-        
-        public List<Achievement> GetUnlockedAchievements()
-        {
-            List<Achievement> unlocked = new List<Achievement>();
-            foreach (Achievement achievement in achievements)
+            if (achievementDictionary.TryGetValue(id, out Achievement achievement))
             {
-                if (achievement.isUnlocked)
-                {
-                    unlocked.Add(achievement);
-                }
+                return achievement.isUnlocked;
             }
-            return unlocked;
+            return false;
         }
         
-        public List<Achievement> GetAllAchievements()
+        public Achievement[] GetAllAchievements()
         {
-            return new List<Achievement>(achievements);
+            return achievements;
+        }
+        
+        // Level-specific achievements
+        public void OnLevelCompleted(int levelIndex)
+        {
+            // Unlock "First Level Completed" achievement
+            if (levelIndex == 1)
+            {
+                UnlockAchievement("first_level");
+            }
+            
+            // Unlock "Ten Levels Completed" achievement
+            AddProgressToAchievement("ten_levels", 1);
+            
+            // Unlock "All Levels Completed" achievement
+            // You would need to check the total number of levels
+            // AddProgressToAchievement("all_levels", 1);
         }
     }
 }

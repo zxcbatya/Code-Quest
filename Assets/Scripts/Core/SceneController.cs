@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace Core
 {
@@ -9,14 +8,12 @@ namespace Core
     {
         public static SceneController Instance { get; private set; }
         
-        [Header("Loading Settings")]
-        [SerializeField] private float minLoadingTime = 1.0f;
+        [Header("Scene Settings")]
+        [SerializeField] private float sceneTransitionDelay = 1.0f;
         [SerializeField] private bool showLoadingScreen = true;
-        [SerializeField] private GameObject loadingScreenPrefab;
         
-        private AsyncOperation currentLoadingOperation;
-        private List<string> loadedScenes = new List<string>();
-        private GameObject loadingScreenInstance;
+        public System.Action<string> OnSceneLoading;
+        public System.Action<string> OnSceneLoaded;
         
         private void Awake()
         {
@@ -31,177 +28,78 @@ namespace Core
             }
         }
         
-        private void Start()
-        {
-            // Создаем экран загрузки, если он есть
-            if (loadingScreenPrefab != null)
-            {
-                loadingScreenInstance = Instantiate(loadingScreenPrefab);
-                loadingScreenInstance.SetActive(false);
-                DontDestroyOnLoad(loadingScreenInstance);
-            }
-        }
-        
         public void LoadScene(string sceneName)
         {
+            OnSceneLoading?.Invoke(sceneName);
+            StartCoroutine(LoadSceneAsync(sceneName));
+        }
+        
+        public void LoadScene(int sceneIndex)
+        {
+            string sceneName = SceneUtility.GetScenePathByBuildIndex(sceneIndex);
+            OnSceneLoading?.Invoke(sceneName);
             StartCoroutine(LoadSceneAsync(sceneName));
         }
         
         private IEnumerator LoadSceneAsync(string sceneName)
         {
-            // Показываем экран загрузки, если включено
-            if (showLoadingScreen)
+            // Add delay for transition effect
+            if (sceneTransitionDelay > 0)
             {
-                ShowLoadingScreen();
+                yield return new WaitForSeconds(sceneTransitionDelay);
             }
             
-            // Начинаем асинхронную загрузку сцены
-            currentLoadingOperation = SceneManager.LoadSceneAsync(sceneName);
-            currentLoadingOperation.allowSceneActivation = false;
+            // Load the scene
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
             
-            // Минимальное время загрузки для плавного перехода
-            float startTime = Time.time;
-            
-            // Ждем завершения загрузки
-            while (!currentLoadingOperation.isDone)
+            // Wait until the scene is loaded
+            while (!asyncLoad.isDone)
             {
-                // Если загрузка почти завершена и прошло минимальное время
-                if (currentLoadingOperation.progress >= 0.9f && Time.time - startTime >= minLoadingTime)
-                {
-                    currentLoadingOperation.allowSceneActivation = true;
-                }
-                
                 yield return null;
             }
             
-            // Добавляем сцену в список загруженных
-            if (!loadedScenes.Contains(sceneName))
-            {
-                loadedScenes.Add(sceneName);
-            }
-            
-            // Скрываем экран загрузки
-            if (showLoadingScreen)
-            {
-                HideLoadingScreen();
-            }
-        }
-        
-        public void LoadNextLevel()
-        {
-            int currentLevel = GameManager.Instance?.GetCurrentLevel() ?? 1;
-            int nextLevel = currentLevel + 1;
-            
-            string nextSceneName = $"Level_{nextLevel:D2}";
-            
-            if (Application.CanStreamedLevelBeLoaded(nextSceneName))
-            {
-                LoadScene(nextSceneName);
-            }
-            else
-            {
-                // Возвращаемся в главное меню
-                LoadScene("MainMenu");
-            }
+            OnSceneLoaded?.Invoke(sceneName);
         }
         
         public void ReloadCurrentScene()
         {
-            string currentScene = SceneManager.GetActiveScene().name;
-            LoadScene(currentScene);
+            Scene currentScene = SceneManager.GetActiveScene();
+            LoadScene(currentScene.name);
         }
         
-        public void LoadMainMenu()
+        public void LoadNextScene()
         {
-            LoadScene("MainMenu");
+            int nextSceneIndex = (SceneManager.GetActiveScene().buildIndex + 1) % SceneManager.sceneCountInBuildSettings;
+            LoadScene(nextSceneIndex);
         }
         
-        public float GetLoadingProgress()
+        public void LoadPreviousScene()
         {
-            return currentLoadingOperation?.progress ?? 0f;
-        }
-        
-        public bool IsLoading()
-        {
-            return currentLoadingOperation != null && !currentLoadingOperation.isDone;
-        }
-        
-        private void ShowLoadingScreen()
-        {
-            if (loadingScreenInstance != null)
+            int previousSceneIndex = SceneManager.GetActiveScene().buildIndex - 1;
+            if (previousSceneIndex < 0)
             {
-                loadingScreenInstance.SetActive(true);
+                previousSceneIndex = SceneManager.sceneCountInBuildSettings - 1;
             }
-            Debug.Log("Loading screen shown");
+            LoadScene(previousSceneIndex);
         }
         
-        private void HideLoadingScreen()
+        public void QuitGame()
         {
-            if (loadingScreenInstance != null)
-            {
-                loadingScreenInstance.SetActive(false);
-            }
-            Debug.Log("Loading screen hidden");
+            #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+            #else
+                Application.Quit();
+            #endif
         }
         
-        public void LoadAdditiveScene(string sceneName)
+        public string GetCurrentSceneName()
         {
-            StartCoroutine(LoadAdditiveSceneAsync(sceneName));
+            return SceneManager.GetActiveScene().name;
         }
         
-        private IEnumerator LoadAdditiveSceneAsync(string sceneName)
+        public int GetCurrentSceneIndex()
         {
-            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-            yield return operation;
-            
-            if (!loadedScenes.Contains(sceneName))
-            {
-                loadedScenes.Add(sceneName);
-            }
-        }
-        
-        public void UnloadScene(string sceneName)
-        {
-            if (loadedScenes.Contains(sceneName))
-            {
-                StartCoroutine(UnloadSceneAsync(sceneName));
-            }
-        }
-        
-        private IEnumerator UnloadSceneAsync(string sceneName)
-        {
-            AsyncOperation operation = SceneManager.UnloadSceneAsync(sceneName);
-            yield return operation;
-            
-            loadedScenes.Remove(sceneName);
-        }
-        
-        public List<string> GetLoadedScenes()
-        {
-            return new List<string>(loadedScenes);
-        }
-        
-        public bool IsSceneLoaded(string sceneName)
-        {
-            return loadedScenes.Contains(sceneName);
-        }
-        
-        public void LoadSceneWithProgress(string sceneName, System.Action<float> onProgress)
-        {
-            StartCoroutine(LoadSceneWithProgressAsync(sceneName, onProgress));
-        }
-        
-        private IEnumerator LoadSceneWithProgressAsync(string sceneName, System.Action<float> onProgress)
-        {
-            AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
-            
-            while (!operation.isDone)
-            {
-                onProgress?.Invoke(operation.progress);
-                yield return null;
-            }
-            
-            onProgress?.Invoke(1f);
+            return SceneManager.GetActiveScene().buildIndex;
         }
     }
 }

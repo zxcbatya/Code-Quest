@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace Core
 {
@@ -7,27 +8,18 @@ namespace Core
         public static SettingsManager Instance { get; private set; }
         
         [Header("Audio Settings")]
-        [SerializeField] private float masterVolume = 1.0f;
-        [SerializeField] private float sfxVolume = 1.0f;
-        [SerializeField] private float musicVolume = 1.0f;
+        [SerializeField] private AudioMixer audioMixer;
+        [SerializeField] private float masterVolume = 0f;
+        [SerializeField] private float musicVolume = 0f;
+        [SerializeField] private float sfxVolume = 0f;
         
-        [Header("Gameplay Settings")]
-        [SerializeField] private string language = "RU";
-        [SerializeField] private bool showGrid = true;
-        [SerializeField] private float cameraSensitivity = 1.0f;
+        [Header("Game Settings")]
+        [SerializeField] private bool soundEnabled = true;
+        [SerializeField] private bool musicEnabled = true;
+        [SerializeField] private string language = "ru";
+        [SerializeField] private bool showHints = true;
         
-        [Header("Performance Settings")]
-        [SerializeField] private int targetFrameRate = 60;
-        [SerializeField] private bool vSync = true;
-        
-        private const string MASTER_VOLUME_KEY = "MasterVolume";
-        private const string SFX_VOLUME_KEY = "SFXVolume";
-        private const string MUSIC_VOLUME_KEY = "MusicVolume";
-        private const string LANGUAGE_KEY = "Language";
-        private const string SHOW_GRID_KEY = "ShowGrid";
-        private const string CAMERA_SENSITIVITY_KEY = "CameraSensitivity";
-        private const string TARGET_FRAMERATE_KEY = "TargetFrameRate";
-        private const string VSYNC_KEY = "VSync";
+        public System.Action OnSettingsChanged;
         
         private void Awake()
         {
@@ -45,113 +37,115 @@ namespace Core
         
         private void LoadSettings()
         {
-            masterVolume = PlayerPrefs.GetFloat(MASTER_VOLUME_KEY, 1.0f);
-            sfxVolume = PlayerPrefs.GetFloat(SFX_VOLUME_KEY, 1.0f);
-            musicVolume = PlayerPrefs.GetFloat(MUSIC_VOLUME_KEY, 1.0f);
-            language = PlayerPrefs.GetString(LANGUAGE_KEY, "RU");
-            showGrid = PlayerPrefs.GetInt(SHOW_GRID_KEY, 1) == 1;
-            cameraSensitivity = PlayerPrefs.GetFloat(CAMERA_SENSITIVITY_KEY, 1.0f);
-            targetFrameRate = PlayerPrefs.GetInt(TARGET_FRAMERATE_KEY, 60);
-            vSync = PlayerPrefs.GetInt(VSYNC_KEY, 1) == 1;
+            masterVolume = PlayerPrefs.GetFloat("MasterVolume", 0f);
+            musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0f);
+            sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 0f);
+            soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
+            musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+            language = PlayerPrefs.GetString("Language", "ru");
+            showHints = PlayerPrefs.GetInt("ShowHints", 1) == 1;
             
-            ApplySettings();
+            ApplyAudioSettings();
         }
         
-        public void SaveSettings()
+        public void SetMasterVolume(float volume)
         {
-            PlayerPrefs.SetFloat(MASTER_VOLUME_KEY, masterVolume);
-            PlayerPrefs.SetFloat(SFX_VOLUME_KEY, sfxVolume);
-            PlayerPrefs.SetFloat(MUSIC_VOLUME_KEY, musicVolume);
-            PlayerPrefs.SetString(LANGUAGE_KEY, language);
-            PlayerPrefs.SetInt(SHOW_GRID_KEY, showGrid ? 1 : 0);
-            PlayerPrefs.SetFloat(CAMERA_SENSITIVITY_KEY, cameraSensitivity);
-            PlayerPrefs.SetInt(TARGET_FRAMERATE_KEY, targetFrameRate);
-            PlayerPrefs.SetInt(VSYNC_KEY, vSync ? 1 : 0);
-            PlayerPrefs.Save();
+            masterVolume = volume;
+            PlayerPrefs.SetFloat("MasterVolume", volume);
+            ApplyAudioSettings();
+            OnSettingsChanged?.Invoke();
         }
         
-        private void ApplySettings()
+        public void SetMusicVolume(float volume)
         {
-            // Применяем настройки аудио
-            AudioListener.volume = masterVolume;
-            
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.SetSFXVolume(sfxVolume);
-            }
-            
-            // Применяем настройки производительности
-            Application.targetFrameRate = targetFrameRate;
-            QualitySettings.vSyncCount = vSync ? 1 : 0;
-            
-            // Применяем настройки локализации
-            if (RobotCoder.UI.LocalizationManager.Instance != null)
-            {
-                RobotCoder.UI.LocalizationManager.Instance.SetLanguage(language);
-            }
+            musicVolume = volume;
+            PlayerPrefs.SetFloat("MusicVolume", volume);
+            ApplyAudioSettings();
+            OnSettingsChanged?.Invoke();
         }
         
-        // Методы доступа к настройкам
-        
-        public float GetMasterVolume() => masterVolume;
-        public void SetMasterVolume(float volume) 
-        { 
-            masterVolume = Mathf.Clamp01(volume);
-            AudioListener.volume = masterVolume;
-            SaveSettings();
+        public void SetSFXVolume(float volume)
+        {
+            sfxVolume = volume;
+            PlayerPrefs.SetFloat("SFXVolume", volume);
+            ApplyAudioSettings();
+            OnSettingsChanged?.Invoke();
         }
         
-        public float GetSFXVolume() => sfxVolume;
-        public void SetSFXVolume(float volume) 
-        { 
-            sfxVolume = Mathf.Clamp01(volume);
-            AudioManager.Instance?.SetSFXVolume(sfxVolume);
-            SaveSettings();
+        public void SetSoundEnabled(bool enabled)
+        {
+            soundEnabled = enabled;
+            PlayerPrefs.SetInt("SoundEnabled", enabled ? 1 : 0);
+            ApplyAudioSettings();
+            OnSettingsChanged?.Invoke();
         }
         
-        public float GetMusicVolume() => musicVolume;
-        public void SetMusicVolume(float volume) 
-        { 
-            musicVolume = Mathf.Clamp01(volume);
-            SaveSettings();
+        public void SetMusicEnabled(bool enabled)
+        {
+            musicEnabled = enabled;
+            PlayerPrefs.SetInt("MusicEnabled", enabled ? 1 : 0);
+            ApplyAudioSettings();
+            OnSettingsChanged?.Invoke();
         }
         
-        public string GetLanguage() => language;
-        public void SetLanguage(string lang) 
-        { 
+        public void SetLanguage(string lang)
+        {
             language = lang;
-            RobotCoder.UI.LocalizationManager.Instance?.SetLanguage(language);
-            SaveSettings();
+            PlayerPrefs.SetString("Language", lang);
+            OnSettingsChanged?.Invoke();
         }
         
-        public bool GetShowGrid() => showGrid;
-        public void SetShowGrid(bool show) 
-        { 
-            showGrid = show;
-            SaveSettings();
+        public void SetShowHints(bool show)
+        {
+            showHints = show;
+            PlayerPrefs.SetInt("ShowHints", show ? 1 : 0);
+            PlayerPrefs.Save();
+            OnSettingsChanged?.Invoke();
         }
         
-        public float GetCameraSensitivity() => cameraSensitivity;
-        public void SetCameraSensitivity(float sensitivity) 
-        { 
-            cameraSensitivity = sensitivity;
-            SaveSettings();
+        private void ApplyAudioSettings()
+        {
+            if (audioMixer != null)
+            {
+                audioMixer.SetFloat("MasterVolume", soundEnabled ? masterVolume : -80f);
+                audioMixer.SetFloat("MusicVolume", musicEnabled ? musicVolume : -80f);
+                audioMixer.SetFloat("SFXVolume", soundEnabled ? sfxVolume : -80f);
+            }
         }
         
-        public int GetTargetFrameRate() => targetFrameRate;
-        public void SetTargetFrameRate(int frameRate) 
-        { 
-            targetFrameRate = frameRate;
-            Application.targetFrameRate = targetFrameRate;
-            SaveSettings();
+        public float GetMasterVolume()
+        {
+            return masterVolume;
         }
         
-        public bool GetVSync() => vSync;
-        public void SetVSync(bool enabled) 
-        { 
-            vSync = enabled;
-            QualitySettings.vSyncCount = vSync ? 1 : 0;
-            SaveSettings();
+        public float GetMusicVolume()
+        {
+            return musicVolume;
+        }
+        
+        public float GetSFXVolume()
+        {
+            return sfxVolume;
+        }
+        
+        public bool IsSoundEnabled()
+        {
+            return soundEnabled;
+        }
+        
+        public bool IsMusicEnabled()
+        {
+            return musicEnabled;
+        }
+        
+        public string GetLanguage()
+        {
+            return language;
+        }
+        
+        public bool GetShowHints()
+        {
+            return showHints;
         }
     }
 }

@@ -1,50 +1,29 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 namespace Core
 {
-    [System.Serializable]
-    public class GameData
+    public class GameData : MonoBehaviour
     {
-        public int unlockedLevels = 1;
-        public int totalStars = 0;
-        public float playTime = 0f;
-        public int completedLevels = 0;
-        public float masterVolume = 1.0f;
-        public float sfxVolume = 1.0f;
-        public string language = "RU";
-        public bool showGrid = true;
-        public Dictionary<string, int> levelStars = new Dictionary<string, int>();
-        public Dictionary<string, bool> levelCompleted = new Dictionary<string, bool>();
-        public List<string> unlockedAchievements = new List<string>();
-        public int totalCommandsExecuted = 0;
-        public int totalBlocksPlaced = 0;
-        public int totalRestarts = 0;
+        public static GameData Instance { get; private set; }
         
-        public GameData()
-        {
-            unlockedLevels = 1;
-            totalStars = 0;
-            playTime = 0f;
-            completedLevels = 0;
-            masterVolume = 1.0f;
-            sfxVolume = 1.0f;
-            language = "RU";
-            showGrid = true;
-            levelStars = new Dictionary<string, int>();
-            levelCompleted = new Dictionary<string, bool>();
-            unlockedAchievements = new List<string>();
-            totalCommandsExecuted = 0;
-            totalBlocksPlaced = 0;
-            totalRestarts = 0;
-        }
-    }
-    
-    public class GameDataManager : MonoBehaviour
-    {
-        public static GameDataManager Instance { get; private set; }
+        [Header("Game Configuration")]
+        [SerializeField] private int maxLevelCount = 15;
+        [SerializeField] private int maxCommandsPerLevel = 50;
+        [SerializeField] private bool enableDebugMode = false;
+        [SerializeField] private bool showGrid = true;
         
-        [SerializeField] private GameData gameData = new GameData();
+        [Header("Player Progress")]
+        [SerializeField] private int playerLevel = 1;
+        [SerializeField] private int totalStars = 0;
+        [SerializeField] private int totalCoins = 0;
+        
+        [Header("Game Settings")]
+        [SerializeField] private float gameSpeed = 1.0f;
+        [SerializeField] private bool soundEnabled = true;
+        [SerializeField] private bool musicEnabled = true;
+        [SerializeField] private string language = "ru";
+        
+        public System.Action OnGameDataChanged;
         
         private void Awake()
         {
@@ -60,31 +39,114 @@ namespace Core
             }
         }
         
-        public GameData GetGameData()
+        private void LoadGameData()
         {
-            return gameData;
+            // Load game data from PlayerPrefs
+            playerLevel = PlayerPrefs.GetInt("PlayerLevel", 1);
+            totalStars = PlayerPrefs.GetInt("TotalStars", 0);
+            totalCoins = PlayerPrefs.GetInt("TotalCoins", 0);
+            gameSpeed = PlayerPrefs.GetFloat("GameSpeed", 1.0f);
+            soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
+            musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+            language = PlayerPrefs.GetString("Language", "ru");
+            showGrid = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
         }
         
         public void SaveGameData()
         {
-            string json = JsonUtility.ToJson(gameData, true);
-            PlayerPrefs.SetString("GameData", json);
+            // Save game data to PlayerPrefs
+            PlayerPrefs.SetInt("PlayerLevel", playerLevel);
+            PlayerPrefs.SetInt("TotalStars", totalStars);
+            PlayerPrefs.SetInt("TotalCoins", totalCoins);
+            PlayerPrefs.SetFloat("GameSpeed", gameSpeed);
+            PlayerPrefs.SetInt("SoundEnabled", soundEnabled ? 1 : 0);
+            PlayerPrefs.SetInt("MusicEnabled", musicEnabled ? 1 : 0);
+            PlayerPrefs.SetString("Language", language);
+            PlayerPrefs.SetInt("ShowGrid", showGrid ? 1 : 0);
             PlayerPrefs.Save();
         }
         
-        public void LoadGameData()
+        // Getters and Setters
+        public int GetMaxLevelCount() => maxLevelCount;
+        public int GetMaxCommandsPerLevel() => maxCommandsPerLevel;
+        public bool IsDebugModeEnabled() => enableDebugMode;
+        public bool GetShowGrid() => showGrid;
+        public int GetPlayerLevel() => playerLevel;
+        public int GetTotalStars() => totalStars;
+        public int GetTotalCoins() => totalCoins;
+        public float GetGameSpeed() => gameSpeed;
+        public bool IsSoundEnabled() => soundEnabled;
+        public bool IsMusicEnabled() => musicEnabled;
+        public string GetLanguage() => language;
+        
+        public void SetPlayerLevel(int level)
         {
-            if (PlayerPrefs.HasKey("GameData"))
-            {
-                string json = PlayerPrefs.GetString("GameData");
-                gameData = JsonUtility.FromJson<GameData>(json);
-            }
+            playerLevel = Mathf.Max(1, level);
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void AddStars(int stars)
+        {
+            totalStars += stars;
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void AddCoins(int coins)
+        {
+            totalCoins += coins;
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void SetGameSpeed(float speed)
+        {
+            gameSpeed = Mathf.Clamp(speed, 0.1f, 3.0f);
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void SetSoundEnabled(bool enabled)
+        {
+            soundEnabled = enabled;
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void SetMusicEnabled(bool enabled)
+        {
+            musicEnabled = enabled;
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void SetLanguage(string lang)
+        {
+            language = lang;
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
+        }
+        
+        public void SetShowGrid(bool show)
+        {
+            showGrid = show;
+            SaveGameData();
+            OnGameDataChanged?.Invoke();
         }
         
         public void ResetGameData()
         {
-            gameData = new GameData();
+            playerLevel = 1;
+            totalStars = 0;
+            totalCoins = 0;
+            gameSpeed = 1.0f;
+            soundEnabled = true;
+            musicEnabled = true;
+            language = "ru";
+            showGrid = true;
             SaveGameData();
+            OnGameDataChanged?.Invoke();
         }
     }
 }

@@ -1,36 +1,38 @@
-using Core;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using RobotCoder.Core;
-using UI;
+using Core;
+using RobotCoder.UI;
 
-namespace RobotCoder.UI
+namespace UI
 {
     public class GameUIController : MonoBehaviour
     {
-        [Header("UI Панели")]
-        [SerializeField] private GameplayUIManager gameplayUI;
-        [SerializeField] private WorkspacePanel workspacePanel;
-        [SerializeField] private ProgressPanel progressPanel;
-        [SerializeField] private BlockPalette blockPalette;
-        
-        [Header("Настройки уровня")]
-        [SerializeField] private LevelData currentLevelData;
-        
         public static GameUIController Instance { get; private set; }
         
-        public GameplayUIManager GameplayUI => gameplayUI;
-        public WorkspacePanel WorkspacePanel => workspacePanel;
-        public ProgressPanel ProgressPanel => progressPanel;
-        public BlockPalette BlockPalette => blockPalette;
+        [Header("UI Panels")]
+        [SerializeField] private GameObject gameplayPanel;
+        [SerializeField] private GameObject levelCompletePanel;
+        
+        [Header("Gameplay UI")]
+        [SerializeField] private TextMeshProUGUI levelText;
+        [SerializeField] private TextMeshProUGUI commandCountText;
+        [SerializeField] private WorkspacePanel workspacePanel;
+        
+        [Header("Level Complete UI")]
+        [SerializeField] private TextMeshProUGUI levelCompleteText;
+        [SerializeField] private Button continueButton;
+        [SerializeField] private Button menuButton;
+        
+        private GameManager gameManager;
+        private LevelManager levelManager;
         
         private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
-                LoadCurrentLevel();
+                DontDestroyOnLoad(gameObject);
             }
             else
             {
@@ -44,219 +46,163 @@ namespace RobotCoder.UI
             SetupEventListeners();
         }
         
-        private void LoadCurrentLevel()
-        {
-            // Загружаем данные текущего уровня
-            string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-            if (sceneName.StartsWith("Level_"))
-            {
-                string levelNumber = sceneName.Substring(6);
-                currentLevelData = Resources.Load<LevelData>("Levels/Level_" + levelNumber);
-            }
-        }
-        
         private void InitializeUI()
         {
-            if (currentLevelData != null)
+            gameManager = GameManager.Instance;
+            levelManager = LevelManager.Instance;
+            
+            ShowGameplayPanel();
+            UpdateLevelText();
+            
+            if (workspacePanel != null)
             {
-                // Настраиваем палитру блоков
-                if (blockPalette != null)
-                {
-                    blockPalette.SetAvailableCommands(currentLevelData);
-                }
-                
-                // Настраиваем прогресс панель
-                if (progressPanel != null)
-                {
-                    string levelTitle = "Уровень " + currentLevelData.levelIndex;
-                    string objective = currentLevelData.description;
-                    int goalCount = currentLevelData.goalPositions?.Length ?? 1;
-                    
-                    progressPanel.SetLevelInfo(levelTitle, objective, goalCount);
-                }
-                
-                // Обновляем счетчик команд в геймплей UI
-                if (gameplayUI != null)
-                {
-                    gameplayUI.UpdateCommandCounter(0);
-                }
+                workspacePanel.OnCommandCountChanged += OnCommandCountChanged;
+                OnCommandCountChanged(workspacePanel.HasBlocks() ? workspacePanel.GetAllBlocks().Length : 0);
             }
         }
         
         private void SetupEventListeners()
         {
-            // События геймплей UI
-            if (gameplayUI != null)
+            // Очищаем существующие слушатели
+            ClearEventListeners();
+            
+            // Button events
+            if (continueButton != null)
+                continueButton.onClick.AddListener(OnContinueButtonClicked);
+                
+            if (menuButton != null)
+                menuButton.onClick.AddListener(OnMenuButtonClicked);
+                
+            // Game manager events
+            if (gameManager != null)
             {
-                gameplayUI.OnStartProgram += HandleStartProgram;
-                gameplayUI.OnResetProgram += HandleResetProgram;
-                gameplayUI.OnPauseProgram += HandlePauseProgram;
-                gameplayUI.OnSpeedChanged += HandleSpeedChanged;
+                gameManager.OnGameStarted += OnGameStarted;
+                gameManager.OnGamePaused += OnGamePaused;
+                gameManager.OnGameReset += OnGameReset;
+                gameManager.OnLevelChanged += OnLevelChanged;
             }
             
-            // События рабочей области
-            if (workspacePanel != null)
+            // Level manager events
+            if (levelManager != null)
             {
-                workspacePanel.OnCommandCountChanged += HandleCommandCountChanged;
-                workspacePanel.OnWorkspaceCleared += HandleWorkspaceCleared;
-            }
-            
-            // События прогресс панели
-            if (progressPanel != null)
-            {
-                progressPanel.OnAllGoalsCompleted += HandleAllGoalsCompleted;
-            }
-        }
-        
-        private void HandleStartProgram()
-        {
-            Debug.Log("Запуск программы");
-            
-            // Получаем все блоки из рабочей области
-            if (workspacePanel != null)
-            {
-                var blocks = workspacePanel.GetAllBlocks();
-                if (blocks.Length > 0)
-                {
-                    // Здесь будет запуск интерпретатора программы
-                    // ProgramInterpreter.Instance?.ExecuteProgram(blocks);
-                }
+                levelManager.OnLevelCompleted += OnLevelCompleted;
+                levelManager.OnLevelLoaded += OnLevelLoaded;
             }
         }
         
-        private void HandleResetProgram()
+        private void ClearEventListeners()
         {
-            Debug.Log("Сброс программы");
-            
-            // Сбрасываем прогресс
-            if (progressPanel != null)
-            {
-                progressPanel.ResetProgress();
-            }
-            
-            // Сбрасываем состояние робота
-            // RobotController.Instance?.ResetToStart();
+            // Удаляем все существующие слушатели событий
+            if (continueButton != null) continueButton.onClick.RemoveAllListeners();
+            if (menuButton != null) menuButton.onClick.RemoveAllListeners();
         }
         
-        private void HandlePauseProgram()
+        public void ShowGameplayPanel()
         {
-            Debug.Log("Пауза программы");
-            
-            // Приостанавливаем выполнение
-            // ProgramInterpreter.Instance?.PauseExecution();
+            if (gameplayPanel != null) gameplayPanel.SetActive(true);
+            if (levelCompletePanel != null) levelCompletePanel.SetActive(false);
         }
         
-        private void HandleSpeedChanged(float speed)
+        public void ShowLevelCompletePanel()
         {
-            Debug.Log("Изменена скорость: " + speed);
+            if (gameplayPanel != null) gameplayPanel.SetActive(false);
+            if (levelCompletePanel != null) levelCompletePanel.SetActive(true);
             
-            // Изменяем скорость выполнения
-            // ProgramInterpreter.Instance?.SetExecutionSpeed(speed);
-        }
-        
-        private void HandleCommandCountChanged(int count)
-        {
-            if (gameplayUI != null)
+            if (levelCompleteText != null && levelManager != null)
             {
-                gameplayUI.UpdateCommandCounter(count);
-            }
-            
-            // Проверяем лимит команд
-            if (currentLevelData != null && count > currentLevelData.maxCommands)
-            {
-                Debug.Log("Превышен лимит команд!");
-                // Можно показать предупреждение
+                levelCompleteText.text = $"Уровень {levelManager.GetCurrentLevelIndex() + 1} пройден!";
             }
         }
         
-        private void HandleWorkspaceCleared()
+        private void UpdateLevelText()
         {
-            Debug.Log("Рабочая область очищена");
-            
-            if (gameplayUI != null)
+            if (levelText != null && gameManager != null)
             {
-                gameplayUI.UpdateCommandCounter(0);
+                levelText.text = $"Уровень {gameManager.GetCurrentLevel()}";
             }
         }
         
-        private void HandleAllGoalsCompleted()
+        private void OnCommandCountChanged(int count)
         {
-            Debug.Log("Все цели достигнуты!");
-            
-            // Вычисляем количество звезд
-            int stars = CalculateStars();
-            
-            if (gameplayUI != null)
+            if (commandCountText != null)
             {
-                gameplayUI.ShowWinPanel(stars);
+                commandCountText.text = $"Команд: {count}";
             }
         }
         
-        private int CalculateStars()
+        // Button event handlers
+        private void OnContinueButtonClicked()
         {
-            if (currentLevelData == null || workspacePanel == null) return 1;
-            
-            int commandCount = workspacePanel.GetAllBlocks().Length;
-            int optimalCommands = currentLevelData.optimalCommands;
-            int maxCommands = currentLevelData.maxCommands;
-            
-            // 3 звезды - оптимальное решение
-            if (commandCount <= optimalCommands)
-                return 3;
-            
-            // 2 звезды - хорошее решение
-            if (commandCount <= (optimalCommands + maxCommands) / 2)
-                return 2;
-            
-            // 1 звезда - просто прошел уровень
-            return 1;
+            gameManager?.NextLevel();
+            ShowGameplayPanel();
         }
         
-        public void ShowLevelCompleted(int stars)
+        private void OnMenuButtonClicked()
         {
-            if (gameplayUI != null)
-            {
-                gameplayUI.ShowWinPanel(stars);
-            }
+            // Return to main menu
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         }
         
-        public void ShowLevelFailed()
+        // Game event handlers
+        private void OnGameStarted()
         {
-            if (gameplayUI != null)
-            {
-                gameplayUI.ShowLosePanel();
-            }
+            // Здесь можно добавить логику при начале игры
         }
         
-        public void UpdateProgress(int completedGoals)
+        private void OnGamePaused()
         {
-            if (progressPanel != null)
-            {
-                progressPanel.UpdateProgress(completedGoals);
-            }
+            // Здесь можно добавить логику при паузе
+        }
+        
+        private void OnGameReset()
+        {
+            // Здесь можно добавить логику при сбросе
+        }
+        
+        private void OnLevelChanged(int level)
+        {
+            UpdateLevelText();
+        }
+        
+        private void OnLevelCompleted()
+        {
+            ShowLevelCompletePanel();
+        }
+        
+        private void OnLevelLoaded(LevelData level)
+        {
+            UpdateLevelText();
         }
         
         private void OnDestroy()
         {
-            // Отписываемся от событий
-            if (gameplayUI != null)
-            {
-                gameplayUI.OnStartProgram -= HandleStartProgram;
-                gameplayUI.OnResetProgram -= HandleResetProgram;
-                gameplayUI.OnPauseProgram -= HandlePauseProgram;
-                gameplayUI.OnSpeedChanged -= HandleSpeedChanged;
-            }
+            // Unsubscribe from events
+            ClearEventListeners();
             
             if (workspacePanel != null)
             {
-                workspacePanel.OnCommandCountChanged -= HandleCommandCountChanged;
-                workspacePanel.OnWorkspaceCleared -= HandleWorkspaceCleared;
+                workspacePanel.OnCommandCountChanged -= OnCommandCountChanged;
             }
             
-            if (progressPanel != null)
+            if (gameManager != null)
             {
-                progressPanel.OnAllGoalsCompleted -= HandleAllGoalsCompleted;
+                gameManager.OnGameStarted -= OnGameStarted;
+                gameManager.OnGamePaused -= OnGamePaused;
+                gameManager.OnGameReset -= OnGameReset;
+                gameManager.OnLevelChanged -= OnLevelChanged;
             }
+            
+            if (levelManager != null)
+            {
+                levelManager.OnLevelCompleted -= OnLevelCompleted;
+                levelManager.OnLevelLoaded -= OnLevelLoaded;
+            }
+        }
+        
+        private void OnDisable()
+        {
+            // Unsubscribe from events when disabled
+            ClearEventListeners();
         }
     }
 }

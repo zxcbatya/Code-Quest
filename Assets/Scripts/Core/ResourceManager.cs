@@ -1,155 +1,200 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Profiling;
-using System.Collections.Generic;
+using System.IO;
 
 namespace Core
 {
+    /// <summary>
+    /// Менеджер ресурсов для автоматического создания необходимых файлов
+    /// </summary>
     public class ResourceManager : MonoBehaviour
     {
-        public static ResourceManager Instance { get; private set; }
+        [Header("Автоматическое создание ресурсов")]
+        [SerializeField] private bool createMissingResources = true;
+        [SerializeField] private bool createDefaultSettings = true;
+        [SerializeField] private bool createTestLevels = false;
         
-        [Header("Resource Paths")]
-        [SerializeField] private string levelsPath = "Levels/";
-        [SerializeField] private string prefabsPath = "Prefabs/";
-        [SerializeField] private string materialsPath = "Materials/";
-        [SerializeField] private string audioPath = "Audio/";
-        
-        [Header("Memory Management (from UnityResourceManager)")]
-        [SerializeField] private bool autoUnloadUnusedAssets = true;
-        [SerializeField] private float unloadInterval = 30f;
-        private float lastUnloadTime = 0f;
-        
-        private Dictionary<string, Object> loadedResources = new Dictionary<string, Object>();
-        
-        private void Awake()
+        private void Start()
         {
-            if (Instance == null)
+            if (createMissingResources)
             {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
+                CreateMissingResources();
             }
         }
         
-        private void OnEnable()
+        /// <summary>
+        /// Создание отсутствующих ресурсов
+        /// </summary>
+        private void CreateMissingResources()
         {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
-        }
-        
-        private void OnDisable()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            SceneManager.sceneUnloaded -= OnSceneUnloaded;
-        }
-        
-        private void Update()
-        {
-            if (autoUnloadUnusedAssets && Time.time - lastUnloadTime > unloadInterval)
+            Debug.Log("Проверка и создание отсутствующих ресурсов...");
+            
+            // Создаем папку Resources если её нет
+            string resourcesPath = Path.Combine(Application.dataPath, "Resources");
+            if (!Directory.Exists(resourcesPath))
             {
-                UnloadUnusedAssets();
-                lastUnloadTime = Time.time;
-            }
-        }
-        
-        public T LoadResource<T>(string path) where T : Object
-        {
-            // Проверяем, загружен ли уже ресурс
-            if (loadedResources.ContainsKey(path))
-            {
-                return loadedResources[path] as T;
+                Directory.CreateDirectory(resourcesPath);
+                Debug.Log("✓ Создана папка Resources");
             }
             
-            // Загружаем ресурс
-            T resource = Resources.Load<T>(path);
-            if (resource != null)
+            // Создаем папку Levels если её нет
+            string levelsPath = Path.Combine(resourcesPath, "Levels");
+            if (!Directory.Exists(levelsPath))
             {
-                loadedResources[path] = resource;
+                Directory.CreateDirectory(levelsPath);
+                Debug.Log("✓ Создана папка Resources/Levels");
             }
             
-            return resource;
-        }
-        
-        public LevelData LoadLevelData(int levelNumber)
-        {
-            string path = $"{levelsPath}Level_{levelNumber:D2}";
-            return LoadResource<LevelData>(path);
-        }
-        
-        public GameObject LoadPrefab(string prefabName)
-        {
-            string path = $"{prefabsPath}{prefabName}";
-            return LoadResource<GameObject>(path);
-        }
-        
-        public Material LoadMaterial(string materialName)
-        {
-            string path = $"{materialsPath}{materialName}";
-            return LoadResource<Material>(path);
-        }
-        
-        public AudioClip LoadAudioClip(string audioName)
-        {
-            string path = $"{audioPath}{audioName}";
-            return LoadResource<AudioClip>(path);
-        }
-        
-        public void UnloadResource(string path)
-        {
-            if (loadedResources.ContainsKey(path))
+            // Создаем папку Audio если её нет
+            string audioPath = Path.Combine(resourcesPath, "Audio");
+            if (!Directory.Exists(audioPath))
             {
-                loadedResources.Remove(path);
+                Directory.CreateDirectory(audioPath);
+                Debug.Log("✓ Создана папка Resources/Audio");
+            }
+            
+            // Создаем настройки проекта если их нет
+            if (createDefaultSettings)
+            {
+                CreateDefaultSettings();
+            }
+            
+            // Создаем тестовые уровни если нужно
+            if (createTestLevels)
+            {
+                CreateTestLevels();
+            }
+            
+            Debug.Log("Проверка ресурсов завершена");
+        }
+        
+        /// <summary>
+        /// Создание настроек проекта по умолчанию
+        /// </summary>
+        private void CreateDefaultSettings()
+        {
+            string settingsPath = Path.Combine(Application.dataPath, "Resources", "ProjectSettings.asset");
+            if (!File.Exists(settingsPath))
+            {
+                // Создаем экземпляр настроек
+                ProjectSettings settings = ScriptableObject.CreateInstance<ProjectSettings>();
+                
+                // Сохраняем в Resources (в редакторе)
+                #if UNITY_EDITOR
+                UnityEditor.AssetDatabase.CreateAsset(settings, "Assets/Resources/ProjectSettings.asset");
+                UnityEditor.AssetDatabase.SaveAssets();
+                Debug.Log("✓ Созданы настройки проекта по умолчанию");
+                #endif
             }
         }
         
-        public void UnloadAllResources()
+        /// <summary>
+        /// Создание тестовых уровней
+        /// </summary>
+        private void CreateTestLevels()
         {
-            loadedResources.Clear();
+            Debug.Log("Создание тестовых уровней...");
+            
+            // Создаем несколько тестовых уровней
+            for (int i = 1; i <= 3; i++)
+            {
+                CreateTestLevel(i);
+            }
+            
+            Debug.Log("✓ Созданы тестовые уровни");
         }
         
-        public int GetLoadedResourcesCount()
+        /// <summary>
+        /// Создание одного тестового уровня
+        /// </summary>
+        private void CreateTestLevel(int levelIndex)
         {
-            return loadedResources.Count;
+            string levelPath = Path.Combine(Application.dataPath, "Resources", "Levels", $"Level_{levelIndex:D2}.asset");
+            if (!File.Exists(levelPath))
+            {
+                // Создаем экземпляр уровня
+                LevelData levelData = ScriptableObject.CreateInstance<LevelData>();
+                levelData.levelIndex = levelIndex;
+                levelData.levelName = $"Тестовый уровень {levelIndex}";
+                levelData.description = $"Тестовый уровень для проверки системы #{levelIndex}";
+                levelData.difficulty = Mathf.Min(levelIndex, 5);
+                levelData.maxCommands = 10 + (levelIndex * 5);
+                levelData.optimalCommands = 5 + (levelIndex * 2);
+                levelData.startPosition = new Vector2Int(0, 0);
+                levelData.startDirection = 1; // Восток
+                levelData.goalPositions = new Vector2Int[] { new Vector2Int(7, 7) };
+                levelData.gridWidth = 8;
+                levelData.gridHeight = 8;
+                
+                // Инициализируем сетку
+                levelData.gridLayout = new LevelData.TileType[8, 8];
+                for (int x = 0; x < 8; x++)
+                {
+                    for (int y = 0; y < 8; y++)
+                    {
+                        levelData.gridLayout[x, y] = LevelData.TileType.Empty;
+                    }
+                }
+                
+                // Добавляем стены по краям
+                for (int x = 0; x < 8; x++)
+                {
+                    levelData.gridLayout[x, 0] = LevelData.TileType.Wall;
+                    levelData.gridLayout[x, 7] = LevelData.TileType.Wall;
+                }
+                for (int y = 0; y < 8; y++)
+                {
+                    levelData.gridLayout[0, y] = LevelData.TileType.Wall;
+                    levelData.gridLayout[7, y] = LevelData.TileType.Wall;
+                }
+                
+                levelData.SerializeGrid();
+                
+                // Сохраняем уровень (в редакторе)
+                #if UNITY_EDITOR
+                string assetPath = $"Assets/Resources/Levels/Level_{levelIndex:D2}.asset";
+                UnityEditor.AssetDatabase.CreateAsset(levelData, assetPath);
+                Debug.Log($"✓ Создан тестовый уровень {levelIndex}");
+                #endif
+            }
         }
         
-        // --- API adapted from UnityResourceManager ---
-        public void UnloadUnusedAssets()
+        /// <summary>
+        /// Проверка целостности ресурсов
+        /// </summary>
+        [ContextMenu("Проверить целостность ресурсов")]
+        public void CheckResourceIntegrity()
         {
+            Debug.Log("=== ПРОВЕРКА ЦЕЛОСТНОСТИ РЕСУРСОВ ===");
+            
+            // Проверяем существование папок
+            string resourcesPath = Path.Combine(Application.dataPath, "Resources");
+            Debug.Log($"Resources folder exists: {Directory.Exists(resourcesPath)}");
+            
+            string levelsPath = Path.Combine(resourcesPath, "Levels");
+            Debug.Log($"Levels folder exists: {Directory.Exists(levelsPath)}");
+            
+            string audioPath = Path.Combine(resourcesPath, "Audio");
+            Debug.Log($"Audio folder exists: {Directory.Exists(audioPath)}");
+            
+            // Проверяем настройки проекта
+            var settings = ProjectSettings.Instance;
+            Debug.Log($"Project settings loaded: {settings != null}");
+            
+            Debug.Log("=== ПРОВЕРКА ЗАВЕРШЕНА ===");
+        }
+        
+        /// <summary>
+        /// Очистка неиспользуемых ресурсов
+        /// </summary>
+        [ContextMenu("Очистить неиспользуемые ресурсы")]
+        public void CleanupUnusedResources()
+        {
+            Debug.Log("Очистка неиспользуемых ресурсов...");
+            
             Resources.UnloadUnusedAssets();
             System.GC.Collect();
-        }
-        
-        public long GetTotalMemoryUsage()
-        {
-            #if !UNITY_WEBGL
-            return Profiler.GetTotalAllocatedMemoryLong();
-            #else
-            return 0;
-            #endif
-        }
-        
-        public void PreloadSceneAssets(string sceneName)
-        {
-            // Заглушка под предзагрузку (сценарий можно расширить при необходимости)
-        }
-        
-        public void UnloadSceneAssets(string sceneName)
-        {
-            // Заглушка под выгрузку ресурсов сцены
-        }
-        
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            PreloadSceneAssets(scene.name);
-        }
-        
-        private void OnSceneUnloaded(Scene scene)
-        {
-            UnloadSceneAssets(scene.name);
+            
+            Debug.Log("✓ Очистка неиспользуемых ресурсов завершена");
         }
     }
 }

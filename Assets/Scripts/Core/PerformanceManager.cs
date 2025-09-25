@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.Profiling;
-using System.Collections.Generic;
 
 namespace Core
 {
@@ -8,23 +6,23 @@ namespace Core
     {
         public static PerformanceManager Instance { get; private set; }
         
-        [Header("Performance Monitoring")]
-        [SerializeField] private bool enableMonitoring = true;
-        [SerializeField] private float updateInterval = 1f; // Интервал обновления в секундах
+        [Header("Performance Settings")]
+        [SerializeField] private bool enablePerformanceMonitoring = true;
+        [SerializeField] private float targetFrameRate = 60f;
+        [SerializeField] private bool vSyncEnabled = true;
         
-        [Header("Performance Thresholds")]
-        [SerializeField] private float targetFrameTime = 16.67f; // 60 FPS в миллисекундах
-        [SerializeField] private float warningFrameTime = 33.33f; // 30 FPS в миллисекундах
-        [SerializeField] private long memoryWarningThreshold = 500000000; // 500MB
+        [Header("Monitoring")]
+        [SerializeField] private float currentFPS = 0f;
+        [SerializeField] private float averageFPS = 0f;
+        [SerializeField] private float minFPS = Mathf.Infinity;
+        [SerializeField] private float maxFPS = 0f;
         
-        private float lastUpdateTime = 0f;
-        private float frameRate = 0f;
-        private float averageFrameTime = 0f;
-        private long memoryUsage = 0;
+        private float lastTime;
+        private int frameCount;
+        private float frameRateUpdateInterval = 0.5f;
+        private float frameRateUpdateTimer;
         
-        // Статистика
-        private Queue<float> frameTimes = new Queue<float>();
-        private const int FRAME_TIME_HISTORY = 60; // Храним последние 60 значений
+        public System.Action<float> OnFPSUpdated;
         
         private void Awake()
         {
@@ -32,6 +30,7 @@ namespace Core
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                InitializePerformanceSettings();
             }
             else
             {
@@ -39,111 +38,79 @@ namespace Core
             }
         }
         
+        private void InitializePerformanceSettings()
+        {
+            QualitySettings.vSyncCount = vSyncEnabled ? 1 : 0;
+            Application.targetFrameRate = (int)targetFrameRate;
+        }
+        
         private void Update()
         {
-            if (!enableMonitoring) return;
+            if (!enablePerformanceMonitoring) return;
             
-            // Обновляем статистику производительности
-            if (Time.time - lastUpdateTime >= updateInterval)
+            CalculateFPS();
+        }
+        
+        private void CalculateFPS()
+        {
+            frameCount++;
+            frameRateUpdateTimer += Time.unscaledDeltaTime;
+            
+            if (frameRateUpdateTimer >= frameRateUpdateInterval)
             {
-                UpdatePerformanceStats();
-                lastUpdateTime = Time.time;
+                currentFPS = frameCount / frameRateUpdateTimer;
+                averageFPS = (averageFPS + currentFPS) / 2;
+                
+                if (currentFPS < minFPS) minFPS = currentFPS;
+                if (currentFPS > maxFPS) maxFPS = currentFPS;
+                
+                frameCount = 0;
+                frameRateUpdateTimer = 0f;
+                
+                OnFPSUpdated?.Invoke(currentFPS);
             }
         }
         
-        private void UpdatePerformanceStats()
+        public void SetTargetFrameRate(float target)
         {
-            // Рассчитываем FPS
-            frameRate = 1.0f / Time.deltaTime;
-            
-            // Рассчитываем среднее время кадра
-            averageFrameTime = Time.deltaTime * 1000f; // В миллисекундах
-            
-            // Добавляем время кадра в историю
-            frameTimes.Enqueue(averageFrameTime);
-            if (frameTimes.Count > FRAME_TIME_HISTORY)
-            {
-                frameTimes.Dequeue();
-            }
-            
-            // Получаем использование памяти
-            #if !UNITY_WEBGL
-            memoryUsage = Profiler.GetTotalAllocatedMemoryLong();
-            #else
-            // В WebGL точное измерение памяти затруднено
-            memoryUsage = 0;
-            #endif
-            
-            // Проверяем пороговые значения
-            CheckPerformanceThresholds();
+            targetFrameRate = target;
+            Application.targetFrameRate = (int)target;
         }
         
-        private void CheckPerformanceThresholds()
+        public void SetVSyncEnabled(bool enabled)
         {
-            // Проверяем FPS
-            if (averageFrameTime > warningFrameTime)
-            {
-                OnPerformanceWarning($"Low FPS detected: {frameRate:F1} FPS");
-            }
-            
-            // Проверяем использование памяти
-            if (memoryUsage > memoryWarningThreshold)
-            {
-                OnPerformanceWarning($"High memory usage: {memoryUsage / 1000000f:F1} MB");
-            }
+            vSyncEnabled = enabled;
+            QualitySettings.vSyncCount = enabled ? 1 : 0;
         }
         
-        private void OnPerformanceWarning(string warning)
+        public void SetPerformanceMonitoringEnabled(bool enabled)
         {
-            Debug.LogWarning($"Performance Warning: {warning}");
-            
-            // Отправляем событие для других систем
-            OnPerformanceIssue?.Invoke(warning);
+            enablePerformanceMonitoring = enabled;
         }
         
-        public float GetFrameRate()
+        public float GetCurrentFPS()
         {
-            return frameRate;
+            return currentFPS;
         }
         
-        public float GetAverageFrameTime()
+        public float GetAverageFPS()
         {
-            return averageFrameTime;
+            return averageFPS;
         }
         
-        public long GetMemoryUsage()
+        public float GetMinFPS()
         {
-            return memoryUsage;
+            return minFPS;
         }
         
-        public float GetAverageFrameTimeHistory()
+        public float GetMaxFPS()
         {
-            if (frameTimes.Count == 0) return 0f;
-            
-            float sum = 0f;
-            foreach (float time in frameTimes)
-            {
-                sum += time;
-            }
-            return sum / frameTimes.Count;
+            return maxFPS;
         }
         
-        public bool IsPerformanceGood()
+        public bool IsPerformanceMonitoringEnabled()
         {
-            return averageFrameTime <= targetFrameTime;
+            return enablePerformanceMonitoring;
         }
-        
-        public bool IsPerformanceWarning()
-        {
-            return averageFrameTime > targetFrameTime && averageFrameTime <= warningFrameTime;
-        }
-        
-        public bool IsPerformanceCritical()
-        {
-            return averageFrameTime > warningFrameTime;
-        }
-        
-        // Событие для уведомления о проблемах производительности
-        public System.Action<string> OnPerformanceIssue;
     }
 }

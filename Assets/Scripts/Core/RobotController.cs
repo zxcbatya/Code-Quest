@@ -1,5 +1,6 @@
 using Core;
 using UnityEngine;
+using System.Collections;
 
 namespace RobotCoder.Core
 {
@@ -14,6 +15,8 @@ namespace RobotCoder.Core
         private Vector2Int startPosition;
         private int startDirection;
         private bool isMoving = false;
+        private GridManager gridManager;
+        private LevelData currentLevel;
         
         private void Awake()
         {
@@ -22,10 +25,32 @@ namespace RobotCoder.Core
                 Instance = this;
                 startPosition = currentPosition;
                 startDirection = currentDirection;
+                DontDestroyOnLoad(gameObject);
             }
             else
             {
                 Destroy(gameObject);
+            }
+        }
+        
+        private void Start()
+        {
+            gridManager = GridManager.Instance;
+        }
+        
+        public void Initialize(LevelData levelData)
+        {
+            currentLevel = levelData;
+            if (levelData != null)
+            {
+                startPosition = levelData.startPosition;
+                startDirection = levelData.startDirection;
+                currentPosition = startPosition;
+                currentDirection = startDirection;
+                
+                // Update visual position
+                transform.position = GridToWorldPosition(currentPosition);
+                transform.rotation = DirectionToRotation(currentDirection);
             }
         }
         
@@ -90,6 +115,10 @@ namespace RobotCoder.Core
         
         public void ResetToStart()
         {
+            // Останавливаем все корутины перед сбросом
+            StopAllCoroutines();
+            isMoving = false;
+            
             currentPosition = startPosition;
             currentDirection = startDirection;
             
@@ -110,11 +139,31 @@ namespace RobotCoder.Core
         
         public bool IsOnGoal()
         {
+            if (currentLevel != null)
+            {
+                return currentLevel.IsGoalPosition(currentPosition);
+            }
             return false;
         }
         
         public bool IsItemNearby()
         {
+            // Check adjacent positions for items
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2Int direction = DirectionToVector(i);
+                Vector2Int checkPosition = currentPosition + direction;
+                
+                if (gridManager != null)
+                {
+                    LevelData.TileType tileType = gridManager.GetTileType(checkPosition.x, checkPosition.y);
+                    if (tileType == LevelData.TileType.Button || 
+                        tileType == LevelData.TileType.Key)
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
         
@@ -138,12 +187,28 @@ namespace RobotCoder.Core
         
         private bool IsValidPosition(Vector2Int position)
         {
-            return position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8;
+            if (gridManager != null)
+            {
+                return gridManager.IsPositionValid(position.x, position.y);
+            }
+            else
+            {
+                // Fallback to simple grid bounds checking
+                return position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8;
+            }
         }
         
         private Vector3 GridToWorldPosition(Vector2Int gridPos)
         {
-            return new Vector3(gridPos.x, 0, gridPos.y);
+            if (gridManager != null)
+            {
+                return gridManager.GridToWorldPosition(gridPos);
+            }
+            else
+            {
+                // Fallback to simple positioning
+                return new Vector3(gridPos.x, 0, gridPos.y);
+            }
         }
         
         private Quaternion DirectionToRotation(int dir)
@@ -272,6 +337,12 @@ namespace RobotCoder.Core
         public bool IsMoving()
         {
             return isMoving;
+        }
+        
+        private void OnDestroy()
+        {
+            // Останавливаем все корутины при уничтожении объекта
+            StopAllCoroutines();
         }
     }
 }

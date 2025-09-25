@@ -1,7 +1,6 @@
 using RobotCoder.Core;
 using RobotCoder.UI;
 using TMPro;
-using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -86,10 +85,15 @@ namespace Core
         
         public virtual CommandBlock Clone()
         {
+            if (gameObject == null) return null;
+            
             GameObject cloneObj = Instantiate(gameObject);
             CommandBlock cloneBlock = cloneObj.GetComponent<CommandBlock>();
-            cloneBlock.isInWorkspace = false;
-            cloneBlock.executionOrder = 0;
+            if (cloneBlock != null)
+            {
+                cloneBlock.isInWorkspace = false;
+                cloneBlock.executionOrder = 0;
+            }
             return cloneBlock;
         }
         
@@ -106,6 +110,12 @@ namespace Core
             backgroundImage.color = Color.yellow;
             yield return new WaitForSeconds(0.5f);
             backgroundImage.color = originalColor;
+        }
+        
+        private void OnDestroy()
+        {
+            // Останавливаем все корутины при уничтожении объекта
+            StopAllCoroutines();
         }
     }
 }

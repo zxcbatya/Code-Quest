@@ -1,84 +1,83 @@
 using UnityEngine;
+using RobotCoder.Core;
 
 namespace Core
 {
     public class CameraController : MonoBehaviour
     {
-        [Header("Camera Settings")]
+        [Header("Target Settings")]
         [SerializeField] private Transform target;
-        [SerializeField] private float distance = 10f;
-        [SerializeField] private float height = 5f;
-        [SerializeField] private float rotationSpeed = 2f;
-        [SerializeField] private float zoomSpeed = 5f;
-        
-        [Header("Zoom Settings")]
-        [SerializeField] private float minDistance = 5f;
-        [SerializeField] private float maxDistance = 20f;
+        [SerializeField] private Vector3 offset = new Vector3(0, 10, -10);
+        [SerializeField] private float smoothSpeed = 0.125f;
         
         [Header("Rotation Settings")]
-        [SerializeField] private float minYAngle = 10f;
-        [SerializeField] private float maxYAngle = 80f;
+        [SerializeField] private bool allowRotation = true;
+        [SerializeField] private float rotationSpeed = 2f;
         
-        private float currentX = 0f;
-        private float currentY = 0f;
-        private float currentDistance;
+        [Header("Zoom Settings")]
+        [SerializeField] private bool allowZoom = true;
+        [SerializeField] private float zoomSpeed = 2f;
+        [SerializeField] private float minZoom = 5f;
+        [SerializeField] private float maxZoom = 20f;
+        
+        private Vector3 desiredPosition;
+        private float currentZoom = 10f;
         
         private void Start()
         {
-            currentDistance = distance;
-            currentY = 45f; // Начальный угол обзора сверху
-            
-            // Получаем цель по умолчанию
             if (target == null)
             {
-                target = GameObject.FindGameObjectWithTag("Player")?.transform;
+                // Try to find the robot controller
+                RobotController robot = RobotController.Instance;
+                if (robot != null)
+                {
+                    target = robot.transform;
+                }
             }
+            
+            currentZoom = offset.magnitude;
         }
         
         private void LateUpdate()
         {
             if (target == null) return;
             
-            // Обработка вращения камеры
-            HandleRotation();
-            
-            // Обработка зума
-            HandleZoom();
-            
-            // Позиционирование камеры
+            HandleInput();
             UpdateCameraPosition();
         }
         
-        private void HandleRotation()
+        private void HandleInput()
         {
-            // Вращение с помощью мыши
-            if (Input.GetMouseButton(1)) // Правая кнопка мыши
+            if (allowRotation)
             {
-                currentX += Input.GetAxis("Mouse X") * rotationSpeed;
-                currentY -= Input.GetAxis("Mouse Y") * rotationSpeed;
-                
-                // Ограничиваем вертикальный угол
-                currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
+                // Rotate camera around target with right mouse button
+                if (Input.GetMouseButton(1))
+                {
+                    float mouseX = Input.GetAxis("Mouse X");
+                    transform.RotateAround(target.position, Vector3.up, mouseX * rotationSpeed);
+                }
             }
-        }
-        
-        private void HandleZoom()
-        {
-            // Зум с помощью колесика мыши
-            float scroll = Input.GetAxis("Mouse ScrollWheel");
-            currentDistance -= scroll * zoomSpeed;
-            currentDistance = Mathf.Clamp(currentDistance, minDistance, maxDistance);
+            
+            if (allowZoom)
+            {
+                // Zoom with scroll wheel
+                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                currentZoom -= scroll * zoomSpeed;
+                currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
+            }
         }
         
         private void UpdateCameraPosition()
         {
-            // Вычисляем направление камеры
-            Vector3 direction = new Vector3(0, 0, -currentDistance);
-            Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
+            // Calculate desired position based on target and offset
+            desiredPosition = target.position + offset.normalized * currentZoom;
             
-            // Позиционируем камеру
-            transform.position = target.position + rotation * direction;
-            transform.LookAt(target.position);
+            // Smoothly move camera to desired position
+            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+            transform.position = smoothedPosition;
+            
+            // Look at target
+            transform.LookAt(target);
         }
         
         public void SetTarget(Transform newTarget)
@@ -86,21 +85,15 @@ namespace Core
             target = newTarget;
         }
         
-        public void ResetCamera()
+        public void SetOffset(Vector3 newOffset)
         {
-            currentX = 0f;
-            currentY = 45f;
-            currentDistance = distance;
+            offset = newOffset;
+            currentZoom = offset.magnitude;
         }
         
-        public void SetDistance(float newDistance)
+        public void SetZoom(float zoom)
         {
-            currentDistance = Mathf.Clamp(newDistance, minDistance, maxDistance);
-        }
-        
-        public void SetHeight(float newHeight)
-        {
-            height = newHeight;
+            currentZoom = Mathf.Clamp(zoom, minZoom, maxZoom);
         }
     }
 }

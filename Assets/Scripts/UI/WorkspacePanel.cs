@@ -40,10 +40,16 @@ namespace RobotCoder.UI
 
         private void InitializeWorkspace()
         {
-            mainDropZone.OnBlockDropped += OnBlockDropped;
+            if (mainDropZone != null)
+            {
+                mainDropZone.OnBlockDropped += OnBlockDropped;
+            }
             UpdateInstructionText();
             UpdateCommandCount();
-            scrollRect.verticalNormalizedPosition = 1f;
+            if (scrollRect != null)
+            {
+                scrollRect.verticalNormalizedPosition = 1f;
+            }
         }
         
         private void OnBlockDropped(CommandBlock block, int slotIndex)
@@ -53,9 +59,25 @@ namespace RobotCoder.UI
 
         private void SetupEventListeners()
         {
-            clearAllButton.onClick.AddListener(ClearAllBlocks);
-            undoButton.onClick.AddListener(UndoLastAction);
-            redoButton.onClick.AddListener(RedoLastAction);
+            // Очищаем существующие слушатели
+            ClearEventListeners();
+            
+            if (clearAllButton != null)
+                clearAllButton.onClick.AddListener(ClearAllBlocks);
+            if (undoButton != null)
+                undoButton.onClick.AddListener(UndoLastAction);
+            if (redoButton != null)
+                redoButton.onClick.AddListener(RedoLastAction);
+        }
+        
+        private void ClearEventListeners()
+        {
+            if (clearAllButton != null)
+                clearAllButton.onClick.RemoveAllListeners();
+            if (undoButton != null)
+                undoButton.onClick.RemoveAllListeners();
+            if (redoButton != null)
+                redoButton.onClick.RemoveAllListeners();
         }
 
         public void OnBlockAdded(CommandBlock block)
@@ -76,38 +98,49 @@ namespace RobotCoder.UI
 
         private void UpdateCommandCount()
         {
-            int commandCount = mainDropZone.BlockCount;
-            commandCountText.SetText(commandCount.ToString());
+            int commandCount = mainDropZone != null ? mainDropZone.BlockCount : 0;
+            if (commandCountText != null)
+            {
+                commandCountText.SetText(commandCount.ToString());
+            }
             OnCommandCountChanged?.Invoke(commandCount);
         }
 
         private void UpdateWorkspaceVisual()
         {
-            bool hasBlocks = mainDropZone.BlockCount > 0;
-            backgroundImage.color = hasBlocks ? filledWorkspaceColor : emptyWorkspaceColor;
+            bool hasBlocks = mainDropZone != null && mainDropZone.BlockCount > 0;
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = hasBlocks ? filledWorkspaceColor : emptyWorkspaceColor;
+            }
             UpdateInstructionText();
         }
 
         private void UpdateInstructionText()
         {
-            bool hasBlocks = mainDropZone.BlockCount > 0;
+            bool hasBlocks = mainDropZone != null && mainDropZone.BlockCount > 0;
             
-            if (hasBlocks)
+            if (instructionText != null)
             {
-                string runText = LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") ?? "Нажмите СТАРТ для запуска";
-                instructionText.text = runText;
-                instructionText.color = new Color(0.2f, 0.8f, 0.2f, 0.8f);
-            }
-            else
-            {
-                string dragText = LocalizationManager.Instance?.GetText("DRAG_BLOCKS_HERE") ?? "Перетащите блоки сюда";
-                instructionText.text = dragText;
-                instructionText.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+                if (hasBlocks)
+                {
+                    string runText = LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") ?? "Нажмите СТАРТ для запуска";
+                    instructionText.text = runText;
+                    instructionText.color = new Color(0.2f, 0.8f, 0.2f, 0.8f);
+                }
+                else
+                {
+                    string dragText = LocalizationManager.Instance?.GetText("DRAG_BLOCKS_HERE") ?? "Перетащите блоки сюда";
+                    instructionText.text = dragText;
+                    instructionText.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+                }
             }
         }
 
         private void ClearAllBlocks()
         {
+            if (mainDropZone == null) return;
+            
             var currentBlocks = new List<CommandBlock>(mainDropZone.Blocks);
             _undoStack.AddRange(currentBlocks);
             
@@ -116,14 +149,20 @@ namespace RobotCoder.UI
                 int excess = _undoStack.Count - _maxUndoSteps;
                 for (int i = 0; i < excess; i++)
                 {
-                    Destroy(_undoStack[i].gameObject);
+                    if (_undoStack[i] != null)
+                    {
+                        Destroy(_undoStack[i].gameObject);
+                    }
                 }
                 _undoStack.RemoveRange(0, excess);
             }
             
             foreach (var block in currentBlocks)
             {
-                ReturnBlockToPalette(block);
+                if (block != null)
+                {
+                    ReturnBlockToPalette(block);
+                }
             }
             _redoStack.Clear();
             
@@ -137,11 +176,16 @@ namespace RobotCoder.UI
 
         private void AddToUndoStack(CommandBlock block)
         {
+            if (block == null) return;
+            
             _undoStack.Add(block);
             
             if (_undoStack.Count > _maxUndoSteps)
             {
-                Destroy(_undoStack[0].gameObject);
+                if (_undoStack[0] != null)
+                {
+                    Destroy(_undoStack[0].gameObject);
+                }
                 _undoStack.RemoveAt(0);
             }
             
@@ -155,7 +199,7 @@ namespace RobotCoder.UI
             var lastBlock = _undoStack[_undoStack.Count - 1];
             _undoStack.RemoveAt(_undoStack.Count - 1);
             
-            bool blockExists = lastBlock.transform.parent == mainDropZone.transform;
+            bool blockExists = lastBlock != null && lastBlock.transform.parent == mainDropZone?.transform;
             
             if (blockExists)
             {
@@ -177,8 +221,11 @@ namespace RobotCoder.UI
             var lastBlock = _redoStack[_redoStack.Count - 1];
             _redoStack.RemoveAt(_redoStack.Count - 1);
             
-            mainDropZone.AcceptBlock(lastBlock);
-            _undoStack.Add(lastBlock);
+            if (lastBlock != null && mainDropZone != null)
+            {
+                mainDropZone.AcceptBlock(lastBlock);
+                _undoStack.Add(lastBlock);
+            }
             
             UpdateCommandCount();
             UpdateWorkspaceVisual();
@@ -189,62 +236,117 @@ namespace RobotCoder.UI
 
         private void UpdateUndoRedoButtons()
         {
-            undoButton.interactable = _undoStack.Count > 0;
-            redoButton.interactable = _redoStack.Count > 0;
+            if (undoButton != null)
+                undoButton.interactable = _undoStack.Count > 0;
+            if (redoButton != null)
+                redoButton.interactable = _redoStack.Count > 0;
         }
 
         public void SetInteractable(bool interactable)
         {
-            clearAllButton.interactable = interactable;
-            undoButton.interactable = interactable && _undoStack.Count > 0;
-            redoButton.interactable = interactable && _redoStack.Count > 0;
+            if (clearAllButton != null)
+                clearAllButton.interactable = interactable;
+            if (undoButton != null)
+                undoButton.interactable = interactable && _undoStack.Count > 0;
+            if (redoButton != null)
+                redoButton.interactable = interactable && _redoStack.Count > 0;
         }
 
         public void HighlightWorkspace(bool highlight)
         {
-            Color targetColor = highlight ? Color.yellow : (mainDropZone.BlockCount > 0 ? filledWorkspaceColor : emptyWorkspaceColor);
+            if (backgroundImage == null) return;
+            
+            Color targetColor = highlight ? Color.yellow : (mainDropZone != null && mainDropZone.BlockCount > 0 ? filledWorkspaceColor : emptyWorkspaceColor);
             backgroundImage.color = targetColor;
         }
 
         public CommandBlock[] GetAllBlocks()
         {
-            return mainDropZone.GetOrderedBlocks();
+            return mainDropZone != null ? mainDropZone.GetOrderedBlocks() : new CommandBlock[0];
         }
 
         public bool HasBlocks()
         {
-            return mainDropZone.BlockCount > 0;
+            return mainDropZone != null && mainDropZone.BlockCount > 0;
         }
 
         public void ScrollToTop()
         {
-            scrollRect.verticalNormalizedPosition = 1f;
+            if (scrollRect != null)
+            {
+                scrollRect.verticalNormalizedPosition = 1f;
+            }
         }
 
         public void ScrollToBottom()
         {
-            scrollRect.verticalNormalizedPosition = 0f;
+            if (scrollRect != null)
+            {
+                scrollRect.verticalNormalizedPosition = 0f;
+            }
         }
 
         private void OnDestroy()
         {
-            mainDropZone.OnBlockDropped -= OnBlockDropped;
+            // Очищаем слушатели событий
+            ClearEventListeners();
+            
+            if (mainDropZone != null)
+            {
+                mainDropZone.OnBlockDropped -= OnBlockDropped;
+            }
+            
+            // Очищаем стеки
+            foreach (var block in _undoStack)
+            {
+                if (block != null)
+                {
+                    Destroy(block.gameObject);
+                }
+            }
+            _undoStack.Clear();
+            
+            foreach (var block in _redoStack)
+            {
+                if (block != null)
+                {
+                    Destroy(block.gameObject);
+                }
+            }
+            _redoStack.Clear();
+            
+            OnCommandCountChanged = null;
+            OnWorkspaceCleared = null;
+        }
+        
+        private void OnDisable()
+        {
+            // Очищаем слушатели событий при отключении
+            ClearEventListeners();
         }
 
         private void ReturnBlockToPalette(CommandBlock block)
         {
+            if (block == null || paletteContent == null) return;
+            
             block.transform.SetParent(paletteContent);
             
             var rect = block.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.localScale = Vector3.one;
-            rect.sizeDelta = new Vector2(150, 50);
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(0f, 1f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+                rect.sizeDelta = new Vector2(150, 50);
+            }
             
             var canvasGroup = block.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = 1f;
-            canvasGroup.blocksRaycasts = true;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+                canvasGroup.blocksRaycasts = true;
+            }
             
             block.SetInWorkspace(false, -1);
             

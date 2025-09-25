@@ -24,12 +24,15 @@ namespace RobotCoder.UI
 
         public void OnDrop(PointerEventData eventData)
         {
-            backgroundImage.color = normalColor;
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = normalColor;
+            }
         }
         
         public void AcceptBlock(CommandBlock block)
         {
-            if (block == null) return;
+            if (block == null || transform == null) return;
             
             block.transform.SetParent(transform);
             SetupBlockForWorkspace(block.gameObject);
@@ -44,22 +47,32 @@ namespace RobotCoder.UI
         
         private void SetupBlockForWorkspace(GameObject blockObj)
         {
+            if (blockObj == null) return;
+            
             var rect = blockObj.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.localScale = Vector3.one;
-            rect.sizeDelta = new Vector2(120, 60);
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+                rect.sizeDelta = new Vector2(120, 60);
+            }
             
             var canvasGroup = blockObj.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = 1f;
-            canvasGroup.blocksRaycasts = true;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+                canvasGroup.blocksRaycasts = true;
+            }
         }
         
         public int BlockCount
         {
             get
             {
+                if (transform == null) return 0;
+                
                 int count = 0;
                 for (int i = 0; i < transform.childCount; i++)
                 {
@@ -73,6 +86,11 @@ namespace RobotCoder.UI
         {
             get
             {
+                if (transform == null)
+                {
+                    return new System.Collections.Generic.List<CommandBlock>();
+                }
+                
                 var list = new System.Collections.Generic.List<CommandBlock>(transform.childCount);
                 for (int i = 0; i < transform.childCount; i++)
                 {
@@ -85,10 +103,12 @@ namespace RobotCoder.UI
 
         public void ClearAllBlocks()
         {
+            if (transform == null) return;
+            
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var child = transform.GetChild(i);
-                if (child.GetComponent<CommandBlock>() != null)
+                if (child != null && child.GetComponent<CommandBlock>() != null)
                 {
                     child.SetParent(null);
                 }
@@ -97,7 +117,9 @@ namespace RobotCoder.UI
 
         public void RemoveBlock(CommandBlock block)
         {
-            if (block != null && block.transform.parent == transform)
+            if (block == null || transform == null) return;
+            
+            if (block.transform.parent == transform)
             {
                 block.transform.SetParent(null);
             }
@@ -105,6 +127,11 @@ namespace RobotCoder.UI
 
         public CommandBlock[] GetOrderedBlocks()
         {
+            if (transform == null)
+            {
+                return new CommandBlock[0];
+            }
+            
             var list = new System.Collections.Generic.List<CommandBlock>(transform.childCount);
             for (int i = 0; i < transform.childCount; i++)
             {
@@ -116,7 +143,9 @@ namespace RobotCoder.UI
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (eventData.pointerDrag != null && eventData.pointerDrag.GetComponent<CommandBlock>() != null)
+            if (eventData == null || eventData.pointerDrag == null) return;
+            
+            if (eventData.pointerDrag.GetComponent<CommandBlock>() != null && backgroundImage != null)
             {
                 backgroundImage.color = highlightColor;
             }
@@ -124,7 +153,16 @@ namespace RobotCoder.UI
         
         public void OnPointerExit(PointerEventData eventData)
         {
-            backgroundImage.color = normalColor;
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = normalColor;
+            }
+        }
+        
+        private void OnDestroy()
+        {
+            // Очищаем события при уничтожении объекта
+            OnBlockDropped = null;
         }
     }
 }
