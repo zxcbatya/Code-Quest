@@ -1,208 +1,150 @@
 # Robot Coder - Educational Programming Game
 
-## Project Overview
+[![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com/)
+[![Platform](https://img.shields.io/badge/Platform-PC%20%7C%20WebGL-green.svg)](https://unity.com/)
+[![License](https://img.shields.io/badge/License-Proprietary-orange.svg)](LICENSE)
 
-Robot Coder is an educational programming game designed for children aged 10-15. Players use visual programming blocks to control a robot through various levels, learning programming concepts in a fun and interactive way.
+An engaging educational game that teaches programming concepts through visual block-based coding. Guide a robot through challenging levels by creating programs with drag-and-drop commands!
 
-## Recent Updates and Fixes
+![Robot Coder Gameplay](https://placehold.co/800x400/4A90E2/FFFFFF?text=Robot+Coder+Gameplay+Preview)
 
-### Memory Management Improvements
-- Fixed memory leaks when transitioning between scenes
-- Added SceneCleanupManager for automatic resource cleanup
-- Implemented proper event listener cleanup in all UI components
-- Added MemoryMonitor for tracking memory usage
+## 🎯 About the Game
 
-### Pause System Fixes
-- Fixed issue where game remained paused when returning to main menu
-- Added ResumeGame() method to properly reset Time.timeScale
-- Improved scene transition handling
+Robot Coder is an innovative educational platform designed for children aged 10-15 to learn programming fundamentals in a fun, interactive environment. Players control a robot through grid-based levels by arranging visual programming blocks, gradually mastering concepts from basic sequences to advanced conditionals.
 
-### Event System Improvements
-- Added ClearEventListeners() methods to all UI components
-- Implemented proper event subscription/unsubscription patterns
-- Fixed duplicate event handler registration
+### Core Features
+- **Visual Programming Interface** - Intuitive drag-and-drop block system
+- **Progressive Difficulty** - 10+ levels introducing programming concepts step-by-step
+- **Educational Focus** - Teaches sequencing, loops, and conditionals
+- **Cross-Platform** - Runs on PC and WebGL browsers
 
-### Code Quality Enhancements
-- Added null checks throughout all components
-- Improved error handling and logging
-- Added GameIntegrityChecker for system diagnostics
-- Created comprehensive documentation
+## 🚀 Getting Started
 
-## Project Structure
+### Prerequisites
+- Unity 2021.3 LTS or later
+- TextMeshPro package
+- Basic understanding of Unity UI system
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/robot-coder.git
+
+# Open in Unity
+# Navigate to the project folder and open with Unity 2021.3+
+```
+
+### Quick Setup
+1. Open the project in Unity
+2. Import required assets from Package Manager
+3. Open the main scene: `Assets/Scenes/Main.unity`
+4. Press Play to start!
+
+## 🎮 Gameplay Overview
+
+### Core Mechanics
+- **3D Top-Down Grid World** - Navigate a robot on a chess-like grid
+- **Visual Block Programming** - Assemble commands by dragging blocks
+- **Real-time Execution** - Watch your robot execute your program step-by-step
+
+### Programming Concepts
+| Level Range | Concepts Taught | Key Features |
+|-------------|----------------|--------------|
+| 1-5 | Sequencing | Basic movement commands |
+| 6-10 | Loops | Repeat X times blocks |
+| 11+ | Conditionals | IF/ELSE logic blocks |
+
+### Available Commands
+- ▶️ **Move Forward** - Move one space forward
+- ↺ **Turn Left** - Rotate 90° counterclockwise
+- ↻ **Turn Right** - Rotate 90° clockwise
+- ⬆️ **Jump** - Leap over obstacles
+- ✋ **Interact** - Activate objects
+
+## 🏗️ Project Structure
 
 ```
 Assets/
 ├── Scripts/
-│   ├── Core/              # Core game systems
-│   ├── UI/                # User interface components
-│   └── ...                # Other script folders
+│   ├── Core/              # Game logic and systems
+│   │   ├── CommandBlock.cs
+│   │   ├── ProgramInterpreter.cs
+│   │   ├── RobotController.cs
+│   │   └── LevelManager.cs
+│   ├── UI/                # Interface components
+│   │   ├── MainMenuManager.cs
+│   │   ├── GameUIController.cs
+│   │   └── WorkspacePanel.cs
+│   └── Utilities/         # Helper classes
 ├── Prefabs/               # Reusable game objects
-├── Resources/             # Game resources
+├── Resources/             # ScriptableObjects and data
 ├── Scenes/                # Game scenes
-└── ...                    # Other asset folders
+└── Art/                   # Visual assets
 ```
 
-## Core Systems
+## 🛠️ Development Setup
 
-### 1. Robot Controller
-- Controls robot movement and actions
-- Handles animation and positioning
-- Manages robot state (position, direction)
+### Scene Configuration
+1. **Main Camera** - Orthographic top-down view
+2. **Grid System** - 8x8 default grid layout
+3. **Lighting** - Directional light for clear visibility
 
-### 2. Level System
-- LevelData: ScriptableObject for level configuration
-- LevelManager: Manages level loading and progression
-- GridManager: Handles grid-based movement and collision
+### Core Component Setup
+1. **GameManager** - Add to scene with all required references
+2. **LevelManager** - Configure with LevelData ScriptableObjects
+3. **UI Canvas** - Contains all interface elements
+4. **Robot** - Player character with RobotController component
 
-### 3. Programming System
-- CommandBlock: Base class for all programming blocks
-- ProgramInterpreter: Executes sequences of commands
-- WorkspacePanel: Area where players arrange commands
+### Level Creation Process
+1. Create new LevelData ScriptableObject
+2. Configure grid size and robot start position
+3. Place goals, walls, and interactive elements
+4. Set available commands for the level
+5. Add to LevelManager's level array
 
-### 4. UI System
-- MainMenuManager: Main menu navigation
-- GameUIController: In-game UI management
-- LevelSelector: Level selection interface
+## 🎨 Visual Design
 
-### 5. Game Management
-- GameManager: Overall game state management
-- SaveManager: Player progress and settings
-- SettingsManager: Game configuration
+### Art Style Guidelines
+- **Low-poly aesthetic** - Clean, simple geometric shapes
+- **Bright color palette** - High contrast for accessibility
+- **Consistent proportions** - All elements fit the grid system
 
-## Creating Levels
+### Recommended Asset Sources
+- **Robot Models**: OpenGameArt.org (CC0 license)
+- **UI Elements**: Unity Asset Store free Sci-Fi packs
+- **Sound Effects**: Freesound.org (Creative Commons)
 
-### 1. Create Level Data Asset
-1. Right-click in Project window
-2. Select "Robot Coder" → "Level Data"
-3. Configure level properties:
-   - Level index and name
-   - Robot start position and direction
-   - Goal positions
-   - Grid layout
-   - Available commands
+## 🧪 Testing & Debugging
 
-### 2. Configure Grid Layout
-- Use the grid editor in the LevelData inspector
-- Place walls, goals, and other elements
-- Set grid dimensions (default 8x8)
-
-### 3. Set Level Constraints
-- Define maximum commands allowed
-- Set optimal command count for stars
-- Enable/disable specific commands
-
-### 4. Add to Level Manager
-- Add the level asset to the LevelManager's levels array
-- Ensure levels are ordered correctly
-
-## Command Blocks
-
-### Basic Commands
-- MoveForward: Move robot one space forward
-- TurnLeft: Rotate robot 90° counterclockwise
-- TurnRight: Rotate robot 90° clockwise
-- Jump: Move forward, jumping over obstacles
-- Interact: Interact with objects
-
-### Advanced Commands
-- Repeat: Execute a sequence multiple times
-- If: Conditional execution based on conditions
-- Else: Alternative execution path
-
-## Customization
-
-### Adding New Commands
-1. Create a new class inheriting from CommandBlock
-2. Implement the Execute method
-3. Add to BlockManager prefabs
-4. Configure in BlockPalette
-
-### Creating New Level Types
-1. Create a new LevelData subclass
-2. Override OnEnable to set default values
-3. Add custom properties as needed
-4. Create corresponding prefabs
-
-### Extending UI
-1. Create new UI components in the UI folder
-2. Use existing managers as reference
-3. Connect to appropriate game systems
-4. Test with different screen sizes
-
-## Best Practices
-
-### Performance
-- Use object pooling for frequently created objects
-- Limit simultaneous animations
-- Optimize grid calculations
-- Use efficient data structures
-
-### Code Organization
-- Keep classes focused on single responsibilities
-- Use ScriptableObjects for data-driven design
-- Implement interfaces for common functionality
-- Follow consistent naming conventions
-
-### Testing
-- Test levels with different command sequences
-- Verify edge cases (boundaries, obstacles)
-- Check UI responsiveness
-- Validate save/load functionality
-
-## Deployment
-
-### WebGL Build
-1. Set build target to WebGL
-2. Configure player settings for web deployment
-3. Test in browser
-4. Optimize build size and loading times
-
-### Yandex Games
-1. Integrate Yandex Games SDK
-2. Configure leaderboard and advertisement settings
-3. Test in Yandex Games environment
-4. Publish to Yandex Games platform
-
-## Troubleshooting
+### Debug Controls
+- `Space` - Start/Stop program execution
+- `R` - Reset current program
+- `F1` - Display system status
+- `Esc` - Pause game
 
 ### Common Issues
-- Level not loading: Check LevelManager configuration
-- Robot not moving: Verify GridManager setup
-- Commands not executing: Check ProgramInterpreter
-- UI not responding: Validate event connections
+- **Robot not moving**: Check ProgramInterpreter connections
+- **Blocks not dragging**: Verify EventSystem exists
+- **Levels not loading**: Confirm LevelManager configuration
 
-### Memory Leak Prevention
-- Always unsubscribe from events in OnDestroy
-- Stop coroutines when objects are destroyed
-- Use SceneCleanupManager for scene transitions
-- Monitor memory usage with MemoryMonitor
-
-### Pause System Issues
-- Ensure Time.timeScale is reset when needed
-- Use ResumeGame() before scene transitions
-- Check that pause panels properly hide/show
-
-### Debugging Tips
-- Use debug logs liberally during development
-- Test each system independently
-- Use Unity's profiler for performance issues
-- Check console for error messages
-- Run GameIntegrityChecker for diagnostics
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Implement changes
-4. Test thoroughly
-5. Submit pull request
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## License
+## 📚 Documentation
 
-This project is proprietary and intended for educational purposes.
+- [System Documentation](SYSTEM_DOCUMENTATION.md) - Complete technical documentation
+- [Level Design Guide](docs/LEVEL_DESIGN.md) - Creating new levels
+- [Command Implementation](docs/COMMANDS.md) - Adding new programming blocks
 
-## Additional Documentation
+## 📄 License
 
-For more detailed information, see:
-- [SYSTEM_DOCUMENTATION.md](SYSTEM_DOCUMENTATION.md) - Complete system documentation
-- [README_RU.md](README_RU.md) - Russian version of this documentation
+This project is proprietary and intended for educational purposes. See [LICENSE](LICENSE) for details.
+
+## 🙋 Support
+
+For questions and support, please open an issue in the repository or contact the development team.
