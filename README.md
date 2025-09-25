@@ -1,150 +1,85 @@
-# Robot Coder - Educational Programming Game
+# Robot Coder - Образовательная игра по программированию
 
-[![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com/)
+[![Unity](https://img.shields.io/badge/Unity-6000.0%2B-blue.svg)](https://unity.com/)
 [![Platform](https://img.shields.io/badge/Platform-PC%20%7C%20WebGL-green.svg)](https://unity.com/)
 [![License](https://img.shields.io/badge/License-Proprietary-orange.svg)](LICENSE)
 
-An engaging educational game that teaches programming concepts through visual block-based coding. Guide a robot through challenging levels by creating programs with drag-and-drop commands!
+Увлекательная образовательная игра, которая учит основам программирования через визуальное блочное программирование. Управляйте роботом через сложные уровни, создавая программы с помощью перетаскивания команд!
 
-![Robot Coder Gameplay](https://placehold.co/800x400/4A90E2/FFFFFF?text=Robot+Coder+Gameplay+Preview)
+![Robot Coder Gameplay](Logo/аааа.png)
 
-## 🎯 About the Game
+## 🎯 О игре
 
-Robot Coder is an innovative educational platform designed for children aged 10-15 to learn programming fundamentals in a fun, interactive environment. Players control a robot through grid-based levels by arranging visual programming blocks, gradually mastering concepts from basic sequences to advanced conditionals.
+Robot Coder - это инновационная образовательная платформа, разработанная для детей в возрасте от 10 до 15 лет для изучения основ программирования в увлекательной и интерактивной среде. Игроки управляют роботом через уровни на сетке, расставляя визуальные блоки программирования и постепенно осваивая концепции от простых последовательностей до продвинутых условных операторов.
 
-### Core Features
-- **Visual Programming Interface** - Intuitive drag-and-drop block system
-- **Progressive Difficulty** - 10+ levels introducing programming concepts step-by-step
-- **Educational Focus** - Teaches sequencing, loops, and conditionals
-- **Cross-Platform** - Runs on PC and WebGL browsers
+### Основные возможности
+- **Визуальный интерфейс программирования** - Интуитивная система блоков с перетаскиванием
+- **Прогрессирующая сложность** - Более 10 уровней с постепенным введением концепций программирования
+- **Образовательная направленность** - Обучение последовательностям, циклам и условным операторам
+- **Кроссплатформенность** - Работает на ПК и в браузерах WebGL
+## 🎮 Обзор геймплея
 
-## 🚀 Getting Started
+### Основные механики
+- **3D вид сверху на сетке** - Навигация робота на шахматной доске
+- **Визуальное блочное программирование** - Сборка команд перетаскиванием блоков
+- **Выполнение в реальном времени** - Наблюдение за выполнением программы шаг за шагом
 
-### Prerequisites
-- Unity 2021.3 LTS or later
-- TextMeshPro package
-- Basic understanding of Unity UI system
+### Концепции программирования
+| Диапазон уровней | Обучаемые концепции | Ключевые особенности |
+|------------------|---------------------|----------------------|
+| 1-5 | Последовательности | Базовые команды движения |
+| 6-10 | Циклы | Блоки повторения X раз |
+| 11+ | Условные операторы | Логика ЕСЛИ/ИНАЧЕ |
 
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/robot-coder.git
+### Доступные команды
+- ▶️ **Двигаться вперед** - Переместиться на одну клетку вперед
+- ↺ **Повернуть налево** - Повернуть на 90° против часовой стрелки
+- ↻ **Повернуть направо** - Повернуть на 90° по часовой стрелке
+- ⬆️ **Прыгнуть** - Перепрыгнуть через препятствия
+- ✋ **Взаимодействовать** - Активировать объекты
 
-# Open in Unity
-# Navigate to the project folder and open with Unity 2021.3+
-```
-
-### Quick Setup
-1. Open the project in Unity
-2. Import required assets from Package Manager
-3. Open the main scene: `Assets/Scenes/Main.unity`
-4. Press Play to start!
-
-## 🎮 Gameplay Overview
-
-### Core Mechanics
-- **3D Top-Down Grid World** - Navigate a robot on a chess-like grid
-- **Visual Block Programming** - Assemble commands by dragging blocks
-- **Real-time Execution** - Watch your robot execute your program step-by-step
-
-### Programming Concepts
-| Level Range | Concepts Taught | Key Features |
-|-------------|----------------|--------------|
-| 1-5 | Sequencing | Basic movement commands |
-| 6-10 | Loops | Repeat X times blocks |
-| 11+ | Conditionals | IF/ELSE logic blocks |
-
-### Available Commands
-- ▶️ **Move Forward** - Move one space forward
-- ↺ **Turn Left** - Rotate 90° counterclockwise
-- ↻ **Turn Right** - Rotate 90° clockwise
-- ⬆️ **Jump** - Leap over obstacles
-- ✋ **Interact** - Activate objects
-
-## 🏗️ Project Structure
+## 🏗️ Структура проекта
 
 ```
 Assets/
 ├── Scripts/
-│   ├── Core/              # Game logic and systems
+│   ├── Core/              # Игровая логика и системы
 │   │   ├── CommandBlock.cs
 │   │   ├── ProgramInterpreter.cs
 │   │   ├── RobotController.cs
 │   │   └── LevelManager.cs
-│   ├── UI/                # Interface components
+│   ├── UI/                # Компоненты интерфейса
 │   │   ├── MainMenuManager.cs
 │   │   ├── GameUIController.cs
 │   │   └── WorkspacePanel.cs
-│   └── Utilities/         # Helper classes
-├── Prefabs/               # Reusable game objects
-├── Resources/             # ScriptableObjects and data
-├── Scenes/                # Game scenes
-└── Art/                   # Visual assets
+│   └── Utilities/         # Вспомогательные классы
+├── Prefabs/               # Повторно используемые игровые объекты
+├── Resources/             # ScriptableObjects и данные
+├── Scenes/                # Игровые сцены
+└── Art/                   # Визуальные ассеты
 ```
+## 🎨 Визуальный дизайн
 
-## 🛠️ Development Setup
+### Руководство по стилю
+- **Лоу-поли эстетика** - Чистые, простые геометрические формы
+- **Яркая цветовая палитра** - Высокий контраст для доступности
+- **Согласованные пропорции** - Все элементы соответствуют системе сетки
 
-### Scene Configuration
-1. **Main Camera** - Orthographic top-down view
-2. **Grid System** - 8x8 default grid layout
-3. **Lighting** - Directional light for clear visibility
+## 🧪 Тестирование и отладка
 
-### Core Component Setup
-1. **GameManager** - Add to scene with all required references
-2. **LevelManager** - Configure with LevelData ScriptableObjects
-3. **UI Canvas** - Contains all interface elements
-4. **Robot** - Player character with RobotController component
+### Клавиши отладки
+- `Space` - Запуск/остановка выполнения программы
+- `R` - Сброс текущей программы
+- `F1` - Отображение статуса системы
+- `Esc` - Пауза в игре
 
-### Level Creation Process
-1. Create new LevelData ScriptableObject
-2. Configure grid size and robot start position
-3. Place goals, walls, and interactive elements
-4. Set available commands for the level
-5. Add to LevelManager's level array
 
-## 🎨 Visual Design
+## 📚 Документация
 
-### Art Style Guidelines
-- **Low-poly aesthetic** - Clean, simple geometric shapes
-- **Bright color palette** - High contrast for accessibility
-- **Consistent proportions** - All elements fit the grid system
+- [Системная документация](SYSTEM_DOCUMENTATION.md) - Полная техническая документация
+- [Руководство по дизайну уровней](docs/LEVEL_DESIGN.md) - Создание новых уровней
+- [Реализация команд](docs/COMMANDS.md) - Добавление новых блоков программирования
 
-### Recommended Asset Sources
-- **Robot Models**: OpenGameArt.org (CC0 license)
-- **UI Elements**: Unity Asset Store free Sci-Fi packs
-- **Sound Effects**: Freesound.org (Creative Commons)
+## 📄 Лицензия
 
-## 🧪 Testing & Debugging
-
-### Debug Controls
-- `Space` - Start/Stop program execution
-- `R` - Reset current program
-- `F1` - Display system status
-- `Esc` - Pause game
-
-### Common Issues
-- **Robot not moving**: Check ProgramInterpreter connections
-- **Blocks not dragging**: Verify EventSystem exists
-- **Levels not loading**: Confirm LevelManager configuration
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📚 Documentation
-
-- [System Documentation](SYSTEM_DOCUMENTATION.md) - Complete technical documentation
-- [Level Design Guide](docs/LEVEL_DESIGN.md) - Creating new levels
-- [Command Implementation](docs/COMMANDS.md) - Adding new programming blocks
-
-## 📄 License
-
-This project is proprietary and intended for educational purposes. See [LICENSE](LICENSE) for details.
-
-## 🙋 Support
-
-For questions and support, please open an issue in the repository or contact the development team.
+Этот проект является собственностью и предназначен для коммерческой деятельности.
