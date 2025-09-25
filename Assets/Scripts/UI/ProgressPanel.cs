@@ -8,7 +8,6 @@ namespace UI
 {
     public class ProgressPanel : MonoBehaviour
     {
-        [Header("UI Элементы")]
         [SerializeField] private TextMeshProUGUI levelTitleText;
         [SerializeField] private TextMeshProUGUI objectiveText;
         [SerializeField] private Slider progressSlider;
@@ -18,12 +17,10 @@ namespace UI
         [SerializeField] private TextMeshProUGUI hintText;
         [SerializeField] private Button hintButton;
 
-        [Header("Цвета")]
         [SerializeField] private Color completedGoalColor = Color.green;
         [SerializeField] private Color incompleteGoalColor = Color.gray;
         [SerializeField] private Color progressBarColor = Color.blue;
 
-        [Header("Анимации")]
         [SerializeField] private float animationDuration = 0.5f;
         [SerializeField] private AnimationCurve progressCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
@@ -31,6 +28,7 @@ namespace UI
         private int _completedGoals = 0;
         private string[] _levelHints;
         private int _currentHintIndex = 0;
+        private Coroutine _hideHintCoroutine;
 
         public System.Action OnAllGoalsCompleted;
 
@@ -181,7 +179,11 @@ namespace UI
         {
             if (_levelHints == null || _levelHints.Length == 0) return;
             
-            if (hintPanel) hintPanel.SetActive(true);
+            if (hintPanel && !hintPanel.activeInHierarchy)
+            {
+                hintPanel.SetActive(true);
+                StartCoroutine(AnimateHintPanel(true));
+            }
             
             if (hintText)
             {
@@ -189,8 +191,18 @@ namespace UI
                 _currentHintIndex = (_currentHintIndex + 1) % _levelHints.Length;
             }
             
-            StartCoroutine(HideHintAfterDelay(3f));
+            RestartHideTimer();
             AudioManager.Instance?.PlaySound("button_click");
+        }
+
+        private void RestartHideTimer()
+        {
+            if (_hideHintCoroutine != null)
+            {
+                StopCoroutine(_hideHintCoroutine);
+            }
+            
+            _hideHintCoroutine = StartCoroutine(HideHintAfterDelay(3f));
         }
 
         private IEnumerator HideHintAfterDelay(float delay)
@@ -215,6 +227,11 @@ namespace UI
             float endAlpha = show ? 1f : 0f;
             float duration = 0.3f;
             float startTime = Time.time;
+            
+            if (show)
+            {
+                hintPanel.SetActive(true);
+            }
             
             while (Time.time - startTime < duration)
             {

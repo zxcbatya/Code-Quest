@@ -316,10 +316,13 @@ namespace RobotCoder.UI
                 pausePanel.SetActive(true);
                 StartCoroutine(AnimatePanel(pausePanel, true));
                 pauseTitleText.text = LocalizationManager.Instance?.GetText("PAUSE") ?? "ПАУЗА";
+                pauseButton.gameObject.SetActive(false);
             }
             else
             {
                 StartCoroutine(AnimatePanel(pausePanel, false));
+                pauseButton.gameObject.SetActive(true);
+
             }
 
             _isGamePaused = show;
