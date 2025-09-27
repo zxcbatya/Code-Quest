@@ -7,7 +7,23 @@ namespace Core
     {
         public override bool Execute(RobotController robot)
         {
-            return true;
+            if (robot == null) return false;
+            
+            switch (commandType)
+            {
+                case CommandType.MoveForward:
+                    return robot.MoveForward();
+                case CommandType.TurnLeft:
+                    return robot.TurnLeft();
+                case CommandType.TurnRight:
+                    return robot.TurnRight();
+                case CommandType.Jump:
+                    return robot.Jump();
+                case CommandType.Interact:
+                    return robot.Interact();
+                default:
+                    return true;
+            }
         }
 
         public override void InitializeBlock()

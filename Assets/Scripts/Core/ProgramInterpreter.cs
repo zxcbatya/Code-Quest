@@ -1,9 +1,9 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
-using Core;
+using System.Collections.Generic;
+using RobotCoder.Core;
+using UnityEngine;
 
-namespace RobotCoder.Core
+namespace Core
 {
     public class ProgramInterpreter : MonoBehaviour
     {
@@ -14,9 +14,9 @@ namespace RobotCoder.Core
         [SerializeField] private bool isPaused = false;
         [SerializeField] private bool isExecuting = false;
         
-        private Queue<CommandBlock> commandQueue = new Queue<CommandBlock>();
-        private CommandBlock currentCommand = null;
-        private RobotController robot;
+        private readonly Queue<CommandBlock> _commandQueue = new Queue<CommandBlock>();
+        private CommandBlock _currentCommand = null;
+        private RobotController _robot;
         
         public System.Action OnProgramStarted;
         public System.Action OnProgramCompleted;
@@ -28,7 +28,11 @@ namespace RobotCoder.Core
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
+                // Проверяем, является ли объект корневым перед применением DontDestroyOnLoad
+                if (transform.parent == null)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
             }
             else
             {
@@ -38,21 +42,21 @@ namespace RobotCoder.Core
         
         private void Start()
         {
-            robot = RobotController.Instance;
+            _robot = RobotController.Instance;
         }
         
         public void ExecuteProgram(CommandBlock[] commands)
         {
             if (isExecuting) return;
             
-            commandQueue.Clear();
+            _commandQueue.Clear();
             
             foreach (var command in commands)
             {
-                commandQueue.Enqueue(command);
+                _commandQueue.Enqueue(command);
             }
             
-            if (commandQueue.Count > 0)
+            if (_commandQueue.Count > 0)
             {
                 StartCoroutine(ExecuteProgramCoroutine());
             }
@@ -64,19 +68,19 @@ namespace RobotCoder.Core
             isPaused = false;
             OnProgramStarted?.Invoke();
             
-            while (commandQueue.Count > 0 && !isPaused)
+            while (_commandQueue.Count > 0 && !isPaused)
             {
-                currentCommand = commandQueue.Dequeue();
+                _currentCommand = _commandQueue.Dequeue();
                 
-                if (currentCommand != null)
+                if (_currentCommand != null)
                 {
                     // Подсвечиваем текущую команду
-                    currentCommand.HighlightExecution();
+                    _currentCommand.HighlightExecution();
                     
                     // Выполняем команду
-                    bool success = currentCommand.Execute(robot);
+                    bool success = _currentCommand.Execute(_robot);
                     
-                    OnCommandExecuted?.Invoke(currentCommand);
+                    OnCommandExecuted?.Invoke(_currentCommand);
                     
                     if (!success)
                     {
@@ -90,7 +94,7 @@ namespace RobotCoder.Core
                     yield return new WaitForSeconds(1f / executionSpeed);
                     
                     // Ждем пока робот закончит движение
-                    while (robot != null && robot.IsMoving())
+                    while (_robot != null && _robot.IsMoving())
                     {
                         yield return null;
                     }
@@ -119,10 +123,10 @@ namespace RobotCoder.Core
         public void StopExecution()
         {
             StopAllCoroutines();
-            commandQueue.Clear();
+            _commandQueue.Clear();
             isExecuting = false;
             isPaused = false;
-            currentCommand = null;
+            _currentCommand = null;
         }
         
         public void SetExecutionSpeed(float speed)
@@ -151,12 +155,12 @@ namespace RobotCoder.Core
         
         public CommandBlock GetCurrentCommand()
         {
-            return currentCommand;
+            return _currentCommand;
         }
         
         public int GetRemainingCommands()
         {
-            return commandQueue.Count;
+            return _commandQueue.Count;
         }
         
         private void OnDestroy()

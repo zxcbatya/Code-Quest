@@ -30,7 +30,11 @@ namespace Core
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
+                // Проверяем, является ли объект корневым перед применением DontDestroyOnLoad
+                if (transform.parent == null)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
                 InitializeSounds();
             }
             else
@@ -57,6 +61,7 @@ namespace Core
         
         public void PlaySound(string soundName)
         {
+            // Если звук не найден, просто игнорируем его без предупреждения
             if (soundSource == null || soundDictionary == null) return;
             
             if (soundDictionary.TryGetValue(soundName, out Sound sound))
@@ -64,14 +69,12 @@ namespace Core
                 soundSource.pitch = sound.pitch;
                 soundSource.PlayOneShot(sound.clip, sound.volume);
             }
-            else
-            {
-                Debug.LogWarning($"Звук с именем {soundName} не найден!");
-            }
+            // Убираем предупреждение о ненайденных звуках
         }
         
         public void PlaySound(string soundName, float volume)
         {
+            // Если звук не найден, просто игнорируем его без предупреждения
             if (soundSource == null || soundDictionary == null) return;
             
             if (soundDictionary.TryGetValue(soundName, out Sound sound))
@@ -79,10 +82,7 @@ namespace Core
                 soundSource.pitch = sound.pitch;
                 soundSource.PlayOneShot(sound.clip, volume);
             }
-            else
-            {
-                Debug.LogWarning($"Звук с именем {soundName} не найден!");
-            }
+            // Убираем предупреждение о ненайденных звуках
         }
         
         public void PlayMusicTrack(int trackIndex)
@@ -142,6 +142,12 @@ namespace Core
             {
                 musicSource.UnPause();
             }
+        }
+        
+        // Новый метод для проверки существования звука
+        public bool HasSound(string soundName)
+        {
+            return soundDictionary != null && soundDictionary.ContainsKey(soundName);
         }
     }
 }

@@ -27,6 +27,11 @@ namespace Core
             if (Instance == null)
             {
                 Instance = this;
+                // Проверяем, является ли объект корневым перед применением DontDestroyOnLoad
+                if (transform.parent == null)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
             }
             else
             {
@@ -40,7 +45,12 @@ namespace Core
             
             gridWidth = levelData.gridWidth;
             gridHeight = levelData.gridHeight;
-            gridLayout = new LevelData.TileType[gridWidth, gridHeight];
+            
+            // Убедимся, что gridLayout инициализирован правильного размера
+            if (gridLayout == null || gridLayout.GetLength(0) != gridWidth || gridLayout.GetLength(1) != gridHeight)
+            {
+                gridLayout = new LevelData.TileType[gridWidth, gridHeight];
+            }
             
             // Copy layout from level data
             for (int x = 0; x < gridWidth; x++)
@@ -102,6 +112,12 @@ namespace Core
         
         public LevelData.TileType GetTileType(int x, int y)
         {
+            // Убедимся, что gridLayout инициализирован
+            if (gridLayout == null || gridLayout.GetLength(0) != gridWidth || gridLayout.GetLength(1) != gridHeight)
+            {
+                return LevelData.TileType.Wall;
+            }
+            
             if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight)
                 return LevelData.TileType.Wall;
                 
@@ -110,6 +126,12 @@ namespace Core
         
         public bool IsPositionValid(int x, int y)
         {
+            // Убедимся, что gridLayout инициализирован
+            if (gridLayout == null || gridLayout.GetLength(0) != gridWidth || gridLayout.GetLength(1) != gridHeight)
+            {
+                return false;
+            }
+            
             if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight)
                 return false;
                 

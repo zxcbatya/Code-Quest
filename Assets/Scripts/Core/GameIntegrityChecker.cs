@@ -114,7 +114,7 @@ namespace Core
             }
             
             // ProgramInterpreter
-            if (RobotCoder.Core.ProgramInterpreter.Instance == null)
+            if (ProgramInterpreter.Instance == null)
             {
                 issuesFound.Add("ProgramInterpreter не инициализирован");
                 Debug.LogError("✗ ProgramInterpreter не инициализирован");

@@ -86,7 +86,11 @@ namespace RobotCoder.UI
             UpdateCommandCount();
             UpdateWorkspaceVisual();
             UpdateUndoRedoButtons();
-            AudioManager.Instance?.PlaySound(dropSoundName);
+            // Проверяем наличие звука перед его воспроизведением
+            if (AudioManager.Instance != null && AudioManager.Instance.HasSound(dropSoundName))
+            {
+                AudioManager.Instance.PlaySound(dropSoundName);
+            }
         }
 
         public void OnBlockRemoved(CommandBlock block)
@@ -171,7 +175,11 @@ namespace RobotCoder.UI
             UpdateUndoRedoButtons();
             
             OnWorkspaceCleared?.Invoke();
-            AudioManager.Instance?.PlaySound(clearSoundName);
+            // Проверяем наличие звука перед его воспроизведением
+            if (AudioManager.Instance != null && AudioManager.Instance.HasSound(clearSoundName))
+            {
+                AudioManager.Instance.PlaySound(clearSoundName);
+            }
         }
 
         private void AddToUndoStack(CommandBlock block)
@@ -211,7 +219,11 @@ namespace RobotCoder.UI
             UpdateWorkspaceVisual();
             UpdateUndoRedoButtons();
             
-            AudioManager.Instance?.PlaySound("undo");
+            // Проверяем наличие звука перед его воспроизведением
+            if (AudioManager.Instance != null && AudioManager.Instance.HasSound("undo"))
+            {
+                AudioManager.Instance.PlaySound("undo");
+            }
         }
 
         private void RedoLastAction()
@@ -231,7 +243,11 @@ namespace RobotCoder.UI
             UpdateWorkspaceVisual();
             UpdateUndoRedoButtons();
             
-            AudioManager.Instance?.PlaySound("redo");
+            // Проверяем наличие звука перед его воспроизведением
+            if (AudioManager.Instance != null && AudioManager.Instance.HasSound("redo"))
+            {
+                AudioManager.Instance.PlaySound("redo");
+            }
         }
 
         private void UpdateUndoRedoButtons()

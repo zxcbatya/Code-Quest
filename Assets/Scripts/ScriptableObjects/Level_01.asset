@@ -32,4 +32,5 @@ MonoBehaviour:
   allowInteract: 0
   allowRepeat: 0
   allowIf: 0
+  allowElse: 0
   serializedGrid: []

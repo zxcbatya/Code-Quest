@@ -27,7 +27,7 @@ namespace Core
         [Header("Grid Layout")]
         public int gridWidth = 8;
         public int gridHeight = 8;
-        public TileType[,] gridLayout;
+        public TileType[,] gridLayout = new TileType[8, 8]; // Инициализация по умолчанию
         
         [Header("Available Commands")]
         public bool allowMoveForward = true;
@@ -63,6 +63,12 @@ namespace Core
 
         private void OnValidate()
         {
+            // Убедимся, что gridLayout инициализирован
+            if (gridLayout == null || gridLayout.GetLength(0) != gridWidth || gridLayout.GetLength(1) != gridHeight)
+            {
+                gridLayout = new TileType[gridWidth, gridHeight];
+            }
+            
             if (serializedGrid != null && serializedGrid.Length > 0)
             {
                 DeserializeGrid();
@@ -96,7 +102,11 @@ namespace Core
 
         public void DeserializeGrid()
         {
-            gridLayout = new TileType[gridWidth, gridHeight];
+            // Убедимся, что gridLayout инициализирован правильного размера
+            if (gridLayout == null || gridLayout.GetLength(0) != gridWidth || gridLayout.GetLength(1) != gridHeight)
+            {
+                gridLayout = new TileType[gridWidth, gridHeight];
+            }
             
             if (serializedGrid == null) return;
 
@@ -112,6 +122,12 @@ namespace Core
 
         public TileType GetTile(int x, int y)
         {
+            // Убедимся, что gridLayout инициализирован
+            if (gridLayout == null || gridLayout.GetLength(0) != gridWidth || gridLayout.GetLength(1) != gridHeight)
+            {
+                gridLayout = new TileType[gridWidth, gridHeight];
+            }
+            
             if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight)
                 return TileType.Wall;
                 
