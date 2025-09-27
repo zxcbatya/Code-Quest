@@ -5739,10 +5739,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Settings
+  m_text: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 73eba101aebefba49ae481b32eb42086, type: 2}
-  m_sharedMaterial: {fileID: 520572752176653694, guid: 73eba101aebefba49ae481b32eb42086, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -6511,10 +6511,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Quit
+  m_text: "\u0412\u044B\u0445\u043E\u0434"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 73eba101aebefba49ae481b32eb42086, type: 2}
-  m_sharedMaterial: {fileID: 520572752176653694, guid: 73eba101aebefba49ae481b32eb42086, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -6762,6 +6762,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1471605772}
+  - component: {fileID: 1471605773}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -6784,6 +6785,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 118756359}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1471605773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1471605771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 890ba67290870114ab495c69b3c7a61c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levels:
+  - {fileID: 11400000, guid: 102671c9efcd25d40ad19c8f0a80cb65, type: 2}
+  currentLevelIndex: 0
 --- !u!1001 &1477951291
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9225,10 +9241,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Level
+  m_text: "\u0423\u0440\u043E\u0432\u043D\u0438"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 73eba101aebefba49ae481b32eb42086, type: 2}
-  m_sharedMaterial: {fileID: 520572752176653694, guid: 73eba101aebefba49ae481b32eb42086, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

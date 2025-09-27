@@ -9,21 +9,21 @@ namespace UI
         [SerializeField] private AnimationCurve scaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         [SerializeField] private AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-        private CanvasGroup canvasGroup;
-        private RectTransform rectTransform;
-        private Vector3 originalScale;
+        private CanvasGroup _canvasGroup;
+        private RectTransform _rectTransform;
+        private Vector3 _originalScale;
 
         private void Awake()
         {
-            rectTransform = GetComponent<RectTransform>();
-            canvasGroup = GetComponent<CanvasGroup>();
+            _rectTransform = GetComponent<RectTransform>();
+            _canvasGroup = GetComponent<CanvasGroup>();
             
-            if (canvasGroup == null)
+            if (_canvasGroup == null)
             {
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
 
-            originalScale = rectTransform.localScale;
+            _originalScale = _rectTransform.localScale;
         }
 
         public void ShowPanel()
@@ -42,8 +42,8 @@ namespace UI
             float startTime = Time.time;
             float duration = 1f / animationSpeed;
 
-            Vector3 startScale = show ? Vector3.zero : originalScale;
-            Vector3 endScale = show ? originalScale : Vector3.zero;
+            Vector3 startScale = show ? Vector3.zero : _originalScale;
+            Vector3 endScale = show ? _originalScale : Vector3.zero;
             
             float startAlpha = show ? 0f : 1f;
             float endAlpha = show ? 1f : 0f;
@@ -55,14 +55,14 @@ namespace UI
                 float scaleProgress = scaleCurve.Evaluate(progress);
                 float fadeProgress = fadeCurve.Evaluate(progress);
 
-                rectTransform.localScale = Vector3.Lerp(startScale, endScale, scaleProgress);
-                canvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, fadeProgress);
+                _rectTransform.localScale = Vector3.Lerp(startScale, endScale, scaleProgress);
+                _canvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, fadeProgress);
 
                 yield return null;
             }
 
-            rectTransform.localScale = endScale;
-            canvasGroup.alpha = endAlpha;
+            _rectTransform.localScale = endScale;
+            _canvasGroup.alpha = endAlpha;
 
             if (!show)
             {
@@ -77,7 +77,7 @@ namespace UI
 
         private System.Collections.IEnumerator ButtonPressAnimation()
         {
-            Vector3 pressedScale = originalScale * 0.95f;
+            Vector3 pressedScale = _originalScale * 0.95f;
             float pressTime = 0.1f;
 
             // Нажатие
@@ -85,7 +85,7 @@ namespace UI
             while (Time.time - startTime < pressTime)
             {
                 float progress = (Time.time - startTime) / pressTime;
-                rectTransform.localScale = Vector3.Lerp(originalScale, pressedScale, progress);
+                _rectTransform.localScale = Vector3.Lerp(_originalScale, pressedScale, progress);
                 yield return null;
             }
 
@@ -94,11 +94,11 @@ namespace UI
             while (Time.time - startTime < pressTime)
             {
                 float progress = (Time.time - startTime) / pressTime;
-                rectTransform.localScale = Vector3.Lerp(pressedScale, originalScale, progress);
+                _rectTransform.localScale = Vector3.Lerp(pressedScale, _originalScale, progress);
                 yield return null;
             }
 
-            rectTransform.localScale = originalScale;
+            _rectTransform.localScale = _originalScale;
         }
     }
 }

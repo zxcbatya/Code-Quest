@@ -36,38 +36,62 @@ namespace Core
         [SerializeField] protected bool isInWorkspace = false;
         [SerializeField] protected int executionOrder = 0;
         
-        protected RectTransform rectTransform;
-        protected CanvasGroup canvasGroup;
+        protected RectTransform RectTransform;
+        protected CanvasGroup CanvasGroup;
         
         public bool IsInWorkspace => isInWorkspace;
         public int ExecutionOrder => executionOrder;
 
         protected virtual void Awake()
         {
-            rectTransform = GetComponent<RectTransform>();
-            canvasGroup = GetComponent<CanvasGroup>();
+            RectTransform = GetComponent<RectTransform>();
+            CanvasGroup = GetComponent<CanvasGroup>();
             InitializeBlock();
         }
 
         public virtual void InitializeBlock()
         {
             if (backgroundImage != null)
+            {
                 backgroundImage.color = blockColor;
+            }
                 
-            if (iconImage != null && blockIcon != null)
+            if (iconImage && blockIcon)
                 iconImage.sprite = blockIcon;
                 
-            if (commandText != null)
+            if (commandText)
+            {
                 commandText.text = GetLocalizedCommandName();
+                commandText.color = Color.white;
+                commandText.overflowMode = TextOverflowModes.Overflow;
+                commandText.alignment = TextAlignmentOptions.Center;
+            }
         }
 
         public virtual string GetLocalizedCommandName()
         {
+            string key = commandType.ToString().ToUpper();
             if (LocalizationManager.Instance != null)
             {
-                return LocalizationManager.Instance.GetText(commandType.ToString().ToUpper());
+                return LocalizationManager.Instance.GetText(key);
             }
-            return commandName;
+            return GetDefaultCommandName();
+        }
+
+        private string GetDefaultCommandName()
+        {
+            switch (commandType)
+            { 
+                case CommandType.MoveForward: return "Вперед";
+                case CommandType.TurnLeft: return "Налево";
+                case CommandType.TurnRight: return "Направо";
+                case CommandType.Jump: return "Прыжок";
+                case CommandType.Interact: return "Действие";
+                case CommandType.Repeat: return "Повтор";
+                case CommandType.If: return "Если";
+                case CommandType.Else: return "Иначе";
+                default: return commandType.ToString();
+            }
         }
 
         public abstract bool Execute(RobotController robot);
@@ -77,23 +101,15 @@ namespace Core
             isInWorkspace = inWorkspace;
             executionOrder = order;
             
-            if (backgroundImage != null)
-            {
-                backgroundImage.color = inWorkspace ? blockColor * 1.2f : blockColor;
-            }
+            backgroundImage.color = inWorkspace ? blockColor * 1.2f : blockColor;
         }
         
         public virtual CommandBlock Clone()
         {
-            if (gameObject == null) return null;
-            
             GameObject cloneObj = Instantiate(gameObject);
             CommandBlock cloneBlock = cloneObj.GetComponent<CommandBlock>();
-            if (cloneBlock != null)
-            {
-                cloneBlock.isInWorkspace = false;
-                cloneBlock.executionOrder = 0;
-            }
+            cloneBlock.isInWorkspace = false;
+            cloneBlock.executionOrder = 0;
             return cloneBlock;
         }
         
@@ -104,8 +120,6 @@ namespace Core
         
         protected virtual System.Collections.IEnumerator ExecutionHighlight()
         {
-            if (backgroundImage == null) yield break;
-            
             Color originalColor = backgroundImage.color;
             backgroundImage.color = Color.yellow;
             yield return new WaitForSeconds(0.5f);
@@ -114,7 +128,6 @@ namespace Core
         
         private void OnDestroy()
         {
-            // Останавливаем все корутины при уничтожении объекта
             StopAllCoroutines();
         }
     }

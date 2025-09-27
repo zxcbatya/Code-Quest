@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using RobotCoder.Core;
 using TMPro;
 using RobotCoder.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Core
 {
@@ -20,19 +18,23 @@ namespace Core
         [SerializeField] private bool allowInteract = false;
         [SerializeField] private bool allowRepeat = false;
         [SerializeField] private bool allowIf = false;
-        
-        private List<GameObject> spawnedBlocks = new List<GameObject>();
+
+        private readonly Dictionary<CommandType, GameObject>
+            _templateBlocks = new Dictionary<CommandType, GameObject>();
 
         private void Start()
         {
             InitializePalette();
             CreatePalette();
         }
-        
+
         private void InitializePalette()
         {
-            string titleText = LocalizationManager.Instance?.GetText("COMMAND_PALETTE") ?? "Команды";
-            paletteTitle.text = titleText;
+            string titleText = LocalizationManager.Instance?.GetText("COMMAND_PALETTE");
+            if (paletteTitle != null)
+            {
+                paletteTitle.text = titleText;
+            }
         }
 
         public void SetAvailableCommands(LevelData levelData)
@@ -44,61 +46,87 @@ namespace Core
             allowInteract = levelData.allowInteract;
             allowRepeat = levelData.allowRepeat;
             allowIf = levelData.allowIf;
-            
-            RefreshPalette();
+
+            // Only create missing blocks, don't refresh existing ones
+            CreatePalette();
         }
 
         private void CreatePalette()
         {
-            ClearPalette();
-            
-            if (allowMoveForward) CreateBlock(CommandType.MoveForward);
-            if (allowTurnLeft) CreateBlock(CommandType.TurnLeft);
-            if (allowTurnRight) CreateBlock(CommandType.TurnRight);
-            if (allowJump) CreateBlock(CommandType.Jump);
-            if (allowInteract) CreateBlock(CommandType.Interact);
-            if (allowRepeat) CreateBlock(CommandType.Repeat);
-            if (allowIf) CreateBlock(CommandType.If);
+            // Only create blocks that don't already exist in the palette
+            // This ensures blocks are never deleted or recreated once they exist
+            if (allowMoveForward && !_templateBlocks.ContainsKey(CommandType.MoveForward)) 
+                CreateTemplateBlock(CommandType.MoveForward);
+            if (allowTurnLeft && !_templateBlocks.ContainsKey(CommandType.TurnLeft)) 
+                CreateTemplateBlock(CommandType.TurnLeft);
+            if (allowTurnRight && !_templateBlocks.ContainsKey(CommandType.TurnRight)) 
+                CreateTemplateBlock(CommandType.TurnRight);
+            if (allowJump && !_templateBlocks.ContainsKey(CommandType.Jump)) 
+                CreateTemplateBlock(CommandType.Jump);
+            if (allowInteract && !_templateBlocks.ContainsKey(CommandType.Interact)) 
+                CreateTemplateBlock(CommandType.Interact);
+            if (allowRepeat && !_templateBlocks.ContainsKey(CommandType.Repeat)) 
+                CreateTemplateBlock(CommandType.Repeat);
+            if (allowIf && !_templateBlocks.ContainsKey(CommandType.If)) 
+                CreateTemplateBlock(CommandType.If);
         }
 
-        private void CreateBlock(CommandType commandType)
+        private void CreateTemplateBlock(CommandType commandType)
         {
+            if (blockPrefab == null || blockContainer == null) return;
+            
             GameObject blockObj = Instantiate(blockPrefab, blockContainer);
-            blockObj.tag = "BlockPalette";
-            
-            CommandBlock commandBlock = AddCommandComponent(blockObj, commandType);
-            commandBlock.InitializeBlock();
-            
-            spawnedBlocks.Add(blockObj);
+            if (blockObj != null)
+            {
+                blockObj.tag = "BlockPalette";
+
+                CommandBlock commandBlock = AddCommandComponent(blockObj, commandType);
+                if (commandBlock != null)
+                {
+                    try
+                    {
+                        commandBlock.InitializeBlock();
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"Error initializing command block: {e.Message}");
+                    }
+                }
+
+                // Не добавляем проверку на null для dragDropHandler, потому что он может отсутствовать
+                _templateBlocks[commandType] = blockObj;
+            }
         }
-        
+
         private CommandBlock AddCommandComponent(GameObject blockObj, CommandType commandType)
         {
+            if (blockObj == null) return null;
+            
             var commandBlock = blockObj.GetComponent<CommandBlock>();
             if (commandBlock == null)
             {
                 commandBlock = blockObj.AddComponent<GenericCommandBlock>();
             }
-            
+
             commandBlock.commandType = commandType;
             return commandBlock;
         }
 
-        private void RefreshPalette()
+        public void RefreshPalette()
         {
             CreatePalette();
         }
 
-        private void ClearPalette()
+        public bool HasTemplateBlock(CommandType commandType)
         {
-            foreach (var block in spawnedBlocks)
-            {
-                if (block != null)
-                {
-                    Destroy(block);
-                }
-            }
-            spawnedBlocks.Clear();
+            return _templateBlocks.ContainsKey(commandType) && _templateBlocks[commandType] != null;
         }
+
+        public GameObject GetTemplateBlock(CommandType commandType)
+        {
+            return _templateBlocks.GetValueOrDefault(commandType);
+        }
+
+        // Remove the Update method that was causing unnecessary refreshes
     }
 }

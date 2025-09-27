@@ -17,8 +17,7 @@ namespace RobotCoder.Core
         public override void InitializeBlock()
         {
             commandType = CommandType.Repeat;
-            commandName = "Повтор";
-            blockColor = new Color(0.8f, 0.4f, 0.2f); // Оранжевый
+            blockColor = new Color(0.8f, 0.4f, 0.2f);
             base.InitializeBlock();
             
             SetupRepeatInput();
@@ -46,8 +45,6 @@ namespace RobotCoder.Core
         {
             HighlightExecution();
             
-            if (innerDropZone == null) return true;
-            
             var innerBlocks = innerDropZone.GetOrderedBlocks();
             
             for (int i = 0; i < repeatCount; i++)
@@ -56,7 +53,7 @@ namespace RobotCoder.Core
                 {
                     if (!block.Execute(robot))
                     {
-                        return false; // Прерываем выполнение при ошибке
+                        return false;
                     }
                 }
             }
@@ -89,17 +86,16 @@ namespace RobotCoder.Core
         
         public enum ConditionType
         {
-            PathAhead,      // Путь свободен впереди
-            WallAhead,      // Стена впереди
-            GoalReached,    // Цель достигнута
-            ItemPresent     // Предмет рядом
+            PathAhead,
+            WallAhead,
+            GoalReached,
+            ItemPresent
         }
         
         public override void InitializeBlock()
         {
             commandType = CommandType.If;
-            commandName = "Если";
-            blockColor = new Color(0.6f, 0.2f, 0.8f); // Фиолетовый
+            blockColor = new Color(0.6f, 0.2f, 0.8f);
             base.InitializeBlock();
             
             SetupConditionDropdown();
@@ -136,8 +132,6 @@ namespace RobotCoder.Core
             
             bool conditionResult = EvaluateCondition(robot);
             DropZone targetZone = conditionResult ? trueDropZone : falseDropZone;
-            
-            if (targetZone == null) return true;
             
             var blocksToExecute = targetZone.GetOrderedBlocks();
             

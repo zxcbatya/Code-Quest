@@ -1,9 +1,9 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System;
 
-namespace RobotCoder.UI
+namespace UI
 {
     public class LevelButton : MonoBehaviour
     {
@@ -19,15 +19,15 @@ namespace RobotCoder.UI
         [SerializeField] private Color starActiveColor = Color.yellow;
         [SerializeField] private Color starInactiveColor = Color.gray;
 
-        private int levelIndex;
-        private bool isUnlocked;
-        private Action<int> onLevelSelected;
+        private int _levelIndex;
+        private bool _isUnlocked;
+        private Action<int> _onLevelSelected;
 
         public void Initialize(int levelIndex, bool isUnlocked, Action<int> onLevelSelected)
         {
-            this.levelIndex = levelIndex;
-            this.isUnlocked = isUnlocked;
-            this.onLevelSelected = onLevelSelected;
+            this._levelIndex = levelIndex;
+            this._isUnlocked = isUnlocked;
+            this._onLevelSelected = onLevelSelected;
 
             SetupButton();
             UpdateVisualState();
@@ -39,11 +39,11 @@ namespace RobotCoder.UI
             if (button == null)
                 button = GetComponent<Button>();
 
-            levelNumberText.text = levelIndex.ToString();
+            levelNumberText.text = _levelIndex.ToString();
 
-            if (isUnlocked)
+            if (_isUnlocked)
             {
-                button.onClick.AddListener(() => onLevelSelected?.Invoke(levelIndex));
+                button.onClick.AddListener(() => _onLevelSelected?.Invoke(_levelIndex));
                 button.interactable = true;
             }
             else
@@ -54,7 +54,7 @@ namespace RobotCoder.UI
 
         private void UpdateVisualState()
         {
-            Color targetColor = isUnlocked ? unlockedColor : lockedColor;
+            Color targetColor = _isUnlocked ? unlockedColor : lockedColor;
             
             if (button.targetGraphic != null)
             {
@@ -63,17 +63,17 @@ namespace RobotCoder.UI
 
             if (lockIcon != null)
             {
-                lockIcon.gameObject.SetActive(!isUnlocked);
+                lockIcon.gameObject.SetActive(!_isUnlocked);
             }
 
-            levelNumberText.color = isUnlocked ? Color.white : Color.white;
+            levelNumberText.color = Color.white;
         }
 
         private void LoadLevelProgress()
         {
-            if (!isUnlocked) return;
+            if (!_isUnlocked) return;
 
-            string progressKey = $"Level_{levelIndex}_Stars";
+            string progressKey = $"Level_{_levelIndex}_Stars";
             int starsEarned = PlayerPrefs.GetInt(progressKey, 0);
 
             for (int i = 0; i < stars.Length; i++)

@@ -1,7 +1,8 @@
+using RobotCoder.UI;
 using TMPro;
 using UnityEngine;
 
-namespace RobotCoder.UI
+namespace UI
 {
     [RequireComponent(typeof(TextMeshProUGUI))]
     public class LocalizedText : MonoBehaviour
@@ -9,11 +10,11 @@ namespace RobotCoder.UI
         [Header("Localization")]
         [SerializeField] private string localizationKey;
         
-        private TextMeshProUGUI textComponent;
+        private TextMeshProUGUI _textComponent;
 
         private void Start()
         {
-            textComponent = GetComponent<TextMeshProUGUI>();
+            _textComponent = GetComponent<TextMeshProUGUI>();
             UpdateText();
         }
 
@@ -25,18 +26,18 @@ namespace RobotCoder.UI
 
         public void UpdateText()
         {
-            if (textComponent != null && !string.IsNullOrEmpty(localizationKey))
+            if (_textComponent != null && !string.IsNullOrEmpty(localizationKey))
             {
                 if (LocalizationManager.Instance != null)
                 {
-                    textComponent.text = LocalizationManager.Instance.GetText(localizationKey);
+                    _textComponent.text = LocalizationManager.Instance.GetText(localizationKey);
                 }
             }
         }
 
         private void OnValidate()
         {
-            if (Application.isPlaying && textComponent != null)
+            if (Application.isPlaying && _textComponent != null)
             {
                 UpdateText();
             }

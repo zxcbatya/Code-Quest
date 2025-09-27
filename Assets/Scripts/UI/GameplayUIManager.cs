@@ -1,82 +1,99 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
-using System.Collections;
+using System.Collections.Generic;
 using Core;
 using UI;
+using UnityEngine.SceneManagement;
+using InputManager = Core.InputManager;
 
 namespace RobotCoder.UI
 {
     public class GameplayUIManager : MonoBehaviour
     {
-        [SerializeField] private GameObject palettePanel;
-        [SerializeField] private GameObject workspacePanel;
-        [SerializeField] private GameObject controlPanel;
-        [SerializeField] private GameObject progressPanel;
-        [SerializeField] private GameObject winPanel;
-        [SerializeField] private GameObject losePanel;
-        [SerializeField] private GameObject pausePanel;
-
+        [Header("UI References")]
+        [SerializeField] private TextMeshProUGUI levelTitleText;
+        [SerializeField] private TextMeshProUGUI commandCounterText;
+        [SerializeField] private TextMeshProUGUI maxCommandsText;
+        [SerializeField] private TextMeshProUGUI instructionText;
         [SerializeField] private Button startButton;
         [SerializeField] private Button resetButton;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button menuButton;
-
-        [SerializeField] private TextMeshProUGUI levelTitleText;
-        [SerializeField] private TextMeshProUGUI commandCounterText;
-        [SerializeField] private TextMeshProUGUI maxCommandsText;
-        [SerializeField] private Image[] starsDisplay;
-
+        [SerializeField] private GameObject winPanel;
+        [SerializeField] private GameObject losePanel;
+        [SerializeField] private GameObject pausePanel;
         [SerializeField] private TextMeshProUGUI winTitleText;
         [SerializeField] private Transform starsContainer;
         [SerializeField] private TextMeshProUGUI scoreText;
         [SerializeField] private TextMeshProUGUI timeText;
+        [SerializeField] private TextMeshProUGUI loseTitleText;
+        [SerializeField] private TextMeshProUGUI loseMessageText;
+        [SerializeField] private TextMeshProUGUI pauseTitleText;
         [SerializeField] private Button winNextLevelButton;
         [SerializeField] private Button winRetryButton;
         [SerializeField] private Button winMenuButton;
-
-        [SerializeField] private TextMeshProUGUI loseTitleText;
-        [SerializeField] private TextMeshProUGUI loseMessageText;
         [SerializeField] private Button loseRetryButton;
         [SerializeField] private Button loseMenuButton;
-
-        [SerializeField] private TextMeshProUGUI pauseTitleText;
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button restartButton;
         [SerializeField] private Button pauseMenuButton;
+        [SerializeField] private Image[] starsDisplay;
+        [SerializeField] private WorkspacePanel workspacePanel;
 
+        [Header("Display Settings")]
         [SerializeField] private Color activeStarColor = Color.yellow;
         [SerializeField] private Color inactiveStarColor = Color.gray;
 
+        [Header("Animation Settings")]
         [SerializeField] private float panelAnimationSpeed = 2f;
         [SerializeField] private AnimationCurve panelCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-        private int _currentCommandCount = 0;
+        [SerializeField] private int _currentCommandCount = 0;
         private int _maxCommands = 10;
         private int _currentLevel = 1;
-        private bool _isGamePaused = false;
+        [SerializeField] private bool _isGamePaused = false;
         private bool _isGameRunning = false;
+        private int _lastScore = 0;
+        private float _lastTime = 0f;
 
         public System.Action OnStartProgram;
         public System.Action OnResetProgram;
         public System.Action OnPauseProgram;
         public System.Action<float> OnSpeedChanged;
 
-        private void Start()
+        private void Awake()
         {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            Debug.Log("Scene loaded, reinitializing UI");
             InitializeUI();
             SetupEventListeners();
-            LoadLevelData();
+            SetupGameplayActions();
             
-            // Connect UI events to GameManager
-            var gameManager = GameManager.Instance;
-            if (gameManager != null)
-            {
-                OnStartProgram += gameManager.StartProgram;
-                OnResetProgram += gameManager.ResetProgram;
-                OnPauseProgram += gameManager.PauseProgram;
-            }
+            if (startButton != null)
+                startButton.interactable = true;
+        }
+
+        private void Start()
+        {
+            // Гарантируем, что пауза снята при запуске
+            _isGamePaused = false;
+            Time.timeScale = 1f;
+            
+            InitializeUI();
+            SetupEventListeners();
+            
+            // Гарантируем, что кнопки активны при запуске
+            if (startButton != null)
+                startButton.interactable = true;
+                
+            // Устанавливаем действия после перезапуска
+            SetupGameplayActions();
         }
 
         private void InitializeUI()
@@ -141,16 +158,24 @@ namespace RobotCoder.UI
             if (menuButton != null)
                 menuButton.onClick.RemoveAllListeners();
 
-            if (winNextLevelButton != null) winNextLevelButton.onClick.RemoveAllListeners();
-            if (winRetryButton != null) winRetryButton.onClick.RemoveAllListeners();
-            if (winMenuButton != null) winMenuButton.onClick.RemoveAllListeners();
+            if (winNextLevelButton != null) 
+                winNextLevelButton.onClick.RemoveAllListeners();
+            if (winRetryButton != null) 
+                winRetryButton.onClick.RemoveAllListeners();
+            if (winMenuButton != null) 
+                winMenuButton.onClick.RemoveAllListeners();
 
-            if (loseRetryButton != null) loseRetryButton.onClick.RemoveAllListeners();
-            if (loseMenuButton != null) loseMenuButton.onClick.RemoveAllListeners();
+            if (loseRetryButton != null) 
+                loseRetryButton.onClick.RemoveAllListeners();
+            if (loseMenuButton != null) 
+                loseMenuButton.onClick.RemoveAllListeners();
 
-            if (resumeButton != null) resumeButton.onClick.RemoveAllListeners();
-            if (restartButton != null) restartButton.onClick.RemoveAllListeners();
-            if (pauseMenuButton != null) pauseMenuButton.onClick.RemoveAllListeners();
+            if (resumeButton != null) 
+                resumeButton.onClick.RemoveAllListeners();
+            if (restartButton != null) 
+                restartButton.onClick.RemoveAllListeners();
+            if (pauseMenuButton != null) 
+                pauseMenuButton.onClick.RemoveAllListeners();
 
             var inputManager = InputManager.Instance;
             if (inputManager != null)
@@ -158,6 +183,22 @@ namespace RobotCoder.UI
                 inputManager.UnregisterKeyAction(KeyCode.Space);
                 inputManager.UnregisterKeyAction(KeyCode.R);
                 inputManager.UnregisterKeyAction(KeyCode.Escape);
+            }
+        }
+
+        private void SetupGameplayActions()
+        {
+            var gameManager = GameManager.Instance;
+            if (gameManager != null)
+            {
+                OnStartProgram = gameManager.StartProgram;
+                OnResetProgram = gameManager.ResetProgram;
+                OnPauseProgram = gameManager.PauseProgram;
+                Debug.Log("Gameplay actions setup completed");
+            }
+            else
+            {
+                Debug.LogError("GameManager not found!");
             }
         }
 
@@ -192,6 +233,8 @@ namespace RobotCoder.UI
 
         private void OnStartButtonClicked()
         {
+            Debug.Log($"OnStartButtonClicked: _isGameRunning={_isGameRunning}, _onStartProgram={(object)OnStartProgram}, _onPauseProgram={(object)OnPauseProgram}");
+            
             if (_isGameRunning)
             {
                 OnPauseProgram?.Invoke();
@@ -266,6 +309,15 @@ namespace RobotCoder.UI
         {
             AudioManager.Instance?.PlaySound("button_click");
             ResumeGame();
+            
+            // Получаем GameManager и повторно инициализируем действия
+            var gameManager = GameManager.Instance;
+            if (gameManager != null)
+            {
+                gameManager.ReinitializeEventListeners();
+                gameManager.ReinitializeGameplayActions();
+            }
+            
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
@@ -281,6 +333,9 @@ namespace RobotCoder.UI
                     string key = running ? "STOP" : "START";
                     buttonText.text = LocalizationManager.Instance?.GetText(key) ?? (running ? "СТОП" : "СТАРТ");
                 }
+                
+                startButton.interactable = true;
+                startButton.gameObject.SetActive(true);
             }
 
             if (resetButton != null)
@@ -348,6 +403,10 @@ namespace RobotCoder.UI
 
         public void ShowWinPanelDetailed(int starsEarned, int score, float timeSeconds)
         {
+            // Store the last score and time for localization updates
+            _lastScore = score;
+            _lastTime = timeSeconds;
+            
             if (winPanel != null)
             {
                 winPanel.SetActive(true);
@@ -465,6 +524,19 @@ namespace RobotCoder.UI
             {
                 pauseButton.gameObject.SetActive(true);
             }
+            
+            // Гарантируем, что кнопка старта активна
+            if (startButton != null)
+            {
+                startButton.interactable = true;
+                startButton.gameObject.SetActive(true);
+            }
+            
+            // Также убедимся, что другие кнопки активны
+            if (resetButton != null)
+            {
+                resetButton.interactable = true;
+            }
         }
 
         private static string FormatTime(float seconds)
@@ -521,6 +593,9 @@ namespace RobotCoder.UI
 
         private void OnDestroy()
         {
+            // Отписываемся от события загрузки сцены
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            
             // Очищаем все слушатели событий при уничтожении объекта
             ClearEventListeners();
             Time.timeScale = 1f;

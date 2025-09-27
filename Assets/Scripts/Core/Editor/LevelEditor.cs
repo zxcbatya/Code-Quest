@@ -18,12 +18,10 @@ namespace Core.Editor
         
         public override void OnInspectorGUI()
         {
-            // Draw default inspector
             DrawDefaultInspector();
             
             EditorGUILayout.Space();
             
-            // Grid editor
             showGridEditor = EditorGUILayout.Foldout(showGridEditor, "Grid Editor", true);
             if (showGridEditor)
             {

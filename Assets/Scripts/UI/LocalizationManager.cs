@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UI;
 using UnityEngine;
 
 namespace RobotCoder.UI
@@ -51,14 +52,19 @@ namespace RobotCoder.UI
             AddLocalization("RESET", "СБРОС", "RESET");
             AddLocalization("COMPLETE", "ЗАВЕРШЕНО", "COMPLETE");
             AddLocalization("FAILED", "ПРОВАЛ", "FAILED");
-            AddLocalization("MOVE_FORWARD", "ВПЕРЕД", "MOVE FORWARD");
-            AddLocalization("TURN_LEFT", "НАЛЕВО", "TURN LEFT");
-            AddLocalization("TURN_RIGHT", "НАПРАВО", "TURN RIGHT");
+            // Command type localizations (without underscores - used by CommandBlock)
+            AddLocalization("MOVEFORWARD", "ВПЕРЕД", "MOVE FORWARD");
+            AddLocalization("TURNLEFT", "НАЛЕВО", "TURN LEFT");
+            AddLocalization("TURNRIGHT", "НАПРАВО", "TURN RIGHT");
             AddLocalization("JUMP", "ПРЫЖОК", "JUMP");
             AddLocalization("INTERACT", "ДЕЙСТВИЕ", "INTERACT");
             AddLocalization("REPEAT", "ПОВТОР", "REPEAT");
             AddLocalization("IF", "ЕСЛИ", "IF");
             AddLocalization("ELSE", "ИНАЧЕ", "ELSE");
+            // Command type localizations (with underscores - for backward compatibility)
+            AddLocalization("MOVE_FORWARD", "ВПЕРЕД", "MOVE FORWARD");
+            AddLocalization("TURN_LEFT", "НАЛЕВО", "TURN LEFT");
+            AddLocalization("TURN_RIGHT", "НАПРАВО", "TURN RIGHT");
 
             foreach (var item in localizationTexts)
             {

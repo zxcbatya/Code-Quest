@@ -80,16 +80,29 @@ namespace Core
 
         public void CheckLevelCompletion()
         {
-            if (_robotController.IsOnGoal())
+            // Check if robot is on any goal position
+            if (_robotController != null && _currentLevel != null)
             {
-                _levelCompleted = true;
-                OnLevelCompleted?.Invoke();
-
-                _achievementManager.OnLevelCompleted(currentLevelIndex + 1);
-
-                if (currentLevelIndex + 1 < levels.Length)
+                Vector2Int robotPosition = _robotController.GetCurrentPosition();
+                
+                if (_currentLevel.goalPositions != null)
                 {
-                    UnlockLevel(currentLevelIndex + 1);
+                    foreach (Vector2Int goal in _currentLevel.goalPositions)
+                    {
+                        if (robotPosition == goal)
+                        {
+                            _levelCompleted = true;
+                            OnLevelCompleted?.Invoke();
+
+                            _achievementManager?.OnLevelCompleted(currentLevelIndex + 1);
+
+                            if (currentLevelIndex + 1 < levels.Length)
+                            {
+                                UnlockLevel(currentLevelIndex + 1);
+                            }
+                            return;
+                        }
+                    }
                 }
             }
         }

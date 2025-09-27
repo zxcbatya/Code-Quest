@@ -13,13 +13,11 @@ namespace RobotCoder.UI
         private GameObject _dragPreview;
         private Transform _originalParent;
         private Vector3 _originalPosition;
-        private bool _isFromPalette;
         private bool _isDragging;
 
         private void Awake()
         {
             _commandBlock = GetComponent<CommandBlock>();
-            _isFromPalette = transform.parent.GetComponent<BlockPalette>() != null;
             canvas = GetComponentInParent<Canvas>();
         }
 
@@ -37,27 +35,45 @@ namespace RobotCoder.UI
                 canvas.transform as RectTransform, eventData.position, canvas.worldCamera, out Vector3 worldPoint);
             _dragPreview.transform.position = worldPoint;
             
-            var originalCanvasGroup = GetComponent<CanvasGroup>();
-            originalCanvasGroup.alpha = _isFromPalette ? 0.1f : 0f;
-            originalCanvasGroup.blocksRaycasts = false;
+            // Для блоков из палитры не меняем прозрачность, они должны оставаться видимыми
+            if (!IsFromPalette())
+            {
+                var originalCanvasGroup = GetComponent<CanvasGroup>();
+                if (originalCanvasGroup != null)
+                {
+                    originalCanvasGroup.alpha = 0f;
+                    originalCanvasGroup.blocksRaycasts = false;
+                }
+            }
         }
 
         private void CreateDragPreview()
         {
             _dragPreview = Instantiate(gameObject, canvas.transform);
             _dragPreview.name = "DragPreview";
-            DestroyImmediate(_dragPreview.GetComponent<DragDropHandler>());
+            
+            var dragDropHandler = _dragPreview.GetComponent<DragDropHandler>();
+            if (dragDropHandler != null)
+            {
+                DestroyImmediate(dragDropHandler);
+            }
             
             var rect = _dragPreview.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0, 0);
-            rect.anchorMax = new Vector2(0, 0);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.localScale = Vector3.one;
-            rect.sizeDelta = new Vector2(120, 60);
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(0, 0);
+                rect.anchorMax = new Vector2(0, 0);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.localScale = Vector3.one;
+                rect.sizeDelta = new Vector2(120, 60);
+            }
             
             var canvasGroup = _dragPreview.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = dragAlpha;
-            canvasGroup.blocksRaycasts = false;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = dragAlpha;
+                canvasGroup.blocksRaycasts = false;
+            }
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -78,7 +94,7 @@ namespace RobotCoder.UI
             var dropZone = GetDropZoneUnderPointer(eventData);
             if (dropZone != null)
             {
-                if (_isFromPalette)
+                if (IsFromPalette())
                 {
                     CreateBlockInWorkspace(dropZone);
                 }
@@ -97,44 +113,83 @@ namespace RobotCoder.UI
 
         private void CreateBlockInWorkspace(DropZone dropZone)
         {
+            // Create a new block instead of moving the original
             GameObject newBlock = Instantiate(gameObject, dropZone.transform);
             var newCommandBlock = newBlock.GetComponent<CommandBlock>();
             
+            // Remove the DragDropHandler from the new block since it's now in the workspace
+            var dragDropHandler = newBlock.GetComponent<DragDropHandler>();
+            if (dragDropHandler != null)
+            {
+                Destroy(dragDropHandler);
+            }
+            
             SetupBlockForWorkspace(newBlock);
-            newCommandBlock.SetInWorkspace(true, dropZone.BlockCount);
+            if (newCommandBlock != null)
+            {
+                try
+                {
+                    newCommandBlock.SetInWorkspace(true, dropZone.BlockCount);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Error setting command block in workspace: {e.Message}");
+                }
+            }
             dropZone.OnBlockDropped?.Invoke(newCommandBlock, dropZone.slotIndex);
+            
+            // For palette blocks, we don't need to restore anything since the original stays in place
         }
 
         private void MoveBlockToDropZone(DropZone dropZone)
         {
             transform.SetParent(dropZone.transform);
             SetupBlockForWorkspace(gameObject);
-            _commandBlock.SetInWorkspace(true, dropZone.BlockCount);
+            if (_commandBlock != null)
+            {
+                _commandBlock.SetInWorkspace(true, dropZone.BlockCount);
+            }
             dropZone.OnBlockDropped?.Invoke(_commandBlock, dropZone.slotIndex);
         }
 
+        
         private void SetupBlockForWorkspace(GameObject blockObj)
         {
+            if (blockObj == null) return;
+            
             var rect = blockObj.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.localScale = Vector3.one;
-            rect.sizeDelta = new Vector2(120, 60);
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+                rect.sizeDelta = new Vector2(120, 60);
+            }
             
             var canvasGroup = blockObj.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = 1f;
-            canvasGroup.blocksRaycasts = true;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+                canvasGroup.blocksRaycasts = true;
+            }
         }
 
         private void RestoreOriginalState()
         {
-            transform.SetParent(_originalParent);
-            transform.position = _originalPosition;
-            
-            var originalCanvasGroup = GetComponent<CanvasGroup>();
-            originalCanvasGroup.alpha = 1f;
-            originalCanvasGroup.blocksRaycasts = true;
+            // Only restore non-palette blocks
+            if (!IsFromPalette())
+            {
+                transform.SetParent(_originalParent);
+                transform.position = _originalPosition;
+                
+                var originalCanvasGroup = GetComponent<CanvasGroup>();
+                if (originalCanvasGroup != null)
+                {
+                    originalCanvasGroup.alpha = 1f;
+                    originalCanvasGroup.blocksRaycasts = true;
+                }
+            }
         }
 
         private void CleanupDragState()
@@ -145,9 +200,15 @@ namespace RobotCoder.UI
                 _dragPreview = null;
             }
             
-            if (_isFromPalette)
+            // For palette blocks, we don't need to cleanup since they stay in place
+            if (!IsFromPalette())
             {
-                GetComponent<CanvasGroup>().alpha = 1f;
+                var canvasGroup = GetComponent<CanvasGroup>();
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 1f;
+                    canvasGroup.blocksRaycasts = true;
+                }
             }
         }
 
@@ -162,6 +223,22 @@ namespace RobotCoder.UI
                 if (dropZone != null) return dropZone;
             }
             return null;
+        }
+        
+        // Public method to check if this block is from the palette
+        public bool IsFromPalette()
+        {
+            // Check if the parent or any ancestor has a BlockPalette component
+            Transform currentParent = transform.parent;
+            while (currentParent != null)
+            {
+                if (currentParent.GetComponent<BlockPalette>() != null)
+                {
+                    return true;
+                }
+                currentParent = currentParent.parent;
+            }
+            return false;
         }
     }
 }

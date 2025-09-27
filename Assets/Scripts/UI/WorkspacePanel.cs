@@ -1,10 +1,11 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
 using Core;
+using RobotCoder.UI;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
-namespace RobotCoder.UI
+namespace UI
 {
     public class WorkspacePanel : MonoBehaviour
     {
@@ -59,7 +60,6 @@ namespace RobotCoder.UI
 
         private void SetupEventListeners()
         {
-            // Очищаем существующие слушатели
             ClearEventListeners();
             
             if (clearAllButton != null)
@@ -86,7 +86,6 @@ namespace RobotCoder.UI
             UpdateCommandCount();
             UpdateWorkspaceVisual();
             UpdateUndoRedoButtons();
-            // Проверяем наличие звука перед его воспроизведением
             if (AudioManager.Instance != null && AudioManager.Instance.HasSound(dropSoundName))
             {
                 AudioManager.Instance.PlaySound(dropSoundName);
@@ -304,7 +303,6 @@ namespace RobotCoder.UI
 
         private void OnDestroy()
         {
-            // Очищаем слушатели событий
             ClearEventListeners();
             
             if (mainDropZone != null)
@@ -312,7 +310,6 @@ namespace RobotCoder.UI
                 mainDropZone.OnBlockDropped -= OnBlockDropped;
             }
             
-            // Очищаем стеки
             foreach (var block in _undoStack)
             {
                 if (block != null)
@@ -337,7 +334,6 @@ namespace RobotCoder.UI
         
         private void OnDisable()
         {
-            // Очищаем слушатели событий при отключении
             ClearEventListeners();
         }
 

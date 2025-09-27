@@ -1,14 +1,14 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace RobotCoder.UI
+namespace UI
 {
     public class InputManager : MonoBehaviour
     {
         public static InputManager Instance { get; private set; }
 
-        private Dictionary<KeyCode, System.Action> keyActions = new Dictionary<KeyCode, System.Action>();
-        private Dictionary<string, System.Action> namedActions = new Dictionary<string, System.Action>();
+        private readonly Dictionary<KeyCode, System.Action> _keyActions = new Dictionary<KeyCode, System.Action>();
+        private readonly Dictionary<string, System.Action> _namedActions = new Dictionary<string, System.Action>();
 
         [Header("Настройки ввода")]
         [SerializeField] private bool enableKeyboardShortcuts = true;
@@ -36,51 +36,51 @@ namespace RobotCoder.UI
 
         private void HandleKeyboardInput()
         {
-            foreach (var kvp in keyActions)
+            foreach (var kvp in _keyActions)
             {
                 if (Input.GetKeyDown(kvp.Key))
                 {
                     kvp.Value?.Invoke();
-                    break; // Выполняем только одно действие за кадр
+                    break;
                 }
             }
         }
 
         public void RegisterKeyAction(KeyCode key, System.Action action)
         {
-            if (keyActions.ContainsKey(key))
+            if (_keyActions.ContainsKey(key))
             {
-                keyActions[key] = action;
+                _keyActions[key] = action;
             }
             else
             {
-                keyActions.Add(key, action);
+                _keyActions.Add(key, action);
             }
         }
 
         public void UnregisterKeyAction(KeyCode key)
         {
-            if (keyActions.ContainsKey(key))
+            if (_keyActions.ContainsKey(key))
             {
-                keyActions.Remove(key);
+                _keyActions.Remove(key);
             }
         }
 
         public void RegisterNamedAction(string actionName, System.Action action)
         {
-            if (namedActions.ContainsKey(actionName))
+            if (_namedActions.ContainsKey(actionName))
             {
-                namedActions[actionName] = action;
+                _namedActions[actionName] = action;
             }
             else
             {
-                namedActions.Add(actionName, action);
+                _namedActions.Add(actionName, action);
             }
         }
 
         public void ExecuteNamedAction(string actionName)
         {
-            if (namedActions.TryGetValue(actionName, out System.Action action))
+            if (_namedActions.TryGetValue(actionName, out System.Action action))
             {
                 action?.Invoke();
             }
@@ -98,8 +98,8 @@ namespace RobotCoder.UI
 
         private void OnDestroy()
         {
-            keyActions.Clear();
-            namedActions.Clear();
+            _keyActions.Clear();
+            _namedActions.Clear();
         }
     }
 }
