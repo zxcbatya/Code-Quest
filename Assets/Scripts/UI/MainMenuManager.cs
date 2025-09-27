@@ -3,7 +3,7 @@ using RobotCoder.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Core; // Add this using directive
+using Core;
 
 namespace UI
 {
@@ -15,7 +15,6 @@ namespace UI
         [SerializeField] private GameObject settingsPanel;
 
         [Header("Menu Buttons")]
-        [SerializeField] private Button playButton;
         [SerializeField] private Button levelsButton;
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button quitButton;
@@ -54,16 +53,14 @@ namespace UI
 
         private void SetupEventListeners()
         {
-            // Очищаем существующие слушатели
             ClearEventListeners();
             
-            playButton.onClick.AddListener(() => StartGame());
-            levelsButton.onClick.AddListener(() => ShowLevelSelect());
-            settingsButton.onClick.AddListener(() => ShowSettings());
-            quitButton.onClick.AddListener(() => QuitGame());
+            levelsButton.onClick.AddListener(ShowLevelSelect);
+            settingsButton.onClick.AddListener(ShowSettings);
+            quitButton.onClick.AddListener(QuitGame);
 
-            levelBackButton.onClick.AddListener(() => ShowMenuPanel());
-            settingsBackButton.onClick.AddListener(() => ShowMenuPanel());
+            levelBackButton.onClick.AddListener(ShowMenuPanel);
+            settingsBackButton.onClick.AddListener(ShowMenuPanel);
 
             audioSlider.onValueChanged.AddListener(OnAudioVolumeChanged);
             russianToggle.onValueChanged.AddListener(OnLanguageChanged);
@@ -71,87 +68,65 @@ namespace UI
         
         private void ClearEventListeners()
         {
-            if (playButton != null) playButton.onClick.RemoveAllListeners();
-            if (levelsButton != null) levelsButton.onClick.RemoveAllListeners();
-            if (settingsButton != null) settingsButton.onClick.RemoveAllListeners();
-            if (quitButton != null) quitButton.onClick.RemoveAllListeners();
-            if (levelBackButton != null) levelBackButton.onClick.RemoveAllListeners();
-            if (settingsBackButton != null) settingsBackButton.onClick.RemoveAllListeners();
+            levelsButton.onClick.RemoveAllListeners();
+            settingsButton.onClick.RemoveAllListeners();
+            quitButton.onClick.RemoveAllListeners();
+            levelBackButton.onClick.RemoveAllListeners();
+            settingsBackButton.onClick.RemoveAllListeners();
         }
 
         private void GenerateLevelButtons()
         {
-            // Очищаем существующие кнопки уровней
-            if (levelGrid != null)
+            for (int i = levelGrid.childCount - 1; i >= 0; i--)
             {
-                for (int i = levelGrid.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(levelGrid.GetChild(i).gameObject);
-                }
+                Destroy(levelGrid.GetChild(i).gameObject);
             }
             
             int unlockedLevels = PlayerPrefs.GetInt(LEVEL_PROGRESS_KEY, 1);
 
             for (int i = 1; i <= TOTAL_LEVELS; i++)
             {
-                if (levelButtonPrefab != null && levelGrid != null)
-                {
-                    GameObject levelButtonObj = Instantiate(levelButtonPrefab, levelGrid);
-                    LevelButton levelButton = levelButtonObj.GetComponent<LevelButton>();
-                    
-                    if (levelButton != null)
-                    {
-                        bool isUnlocked = i <= unlockedLevels;
-                        levelButton.Initialize(i, isUnlocked, OnLevelSelected);
-                    }
-                }
+                GameObject levelButtonObj = Instantiate(levelButtonPrefab, levelGrid);
+                LevelButton levelButton = levelButtonObj.GetComponent<LevelButton>();
+                
+                bool isUnlocked = i <= unlockedLevels;
+                levelButton.Initialize(i, isUnlocked, OnLevelSelected);
             }
         }
 
         private void OnLevelSelected(int levelIndex)
         {
             PlayButtonSound();
-            // Используем SceneCleanupManager для загрузки сцены с очисткой
-            SceneCleanupManager.Instance?.LoadSceneWithCleanup($"Level_{levelIndex:D2}");
-        }
-
-        private void StartGame()
-        {
-            PlayButtonSound();
-            // Используем SceneCleanupManager для загрузки сцены с очисткой
-            SceneCleanupManager.Instance?.LoadSceneWithCleanup("Level_01");
+            SceneManager.LoadScene($"Level_{levelIndex:D2}");
         }
 
         private void ShowMenuPanel()
         {
             PlayButtonSound();
-            if (menuPanel != null) menuPanel.SetActive(true);
-            if (levelSelectPanel != null) levelSelectPanel.SetActive(false);
-            if (settingsPanel != null) settingsPanel.SetActive(false);
+            menuPanel.SetActive(true);
+            levelSelectPanel.SetActive(false);
+            settingsPanel.SetActive(false);
         }
 
         private void ShowLevelSelect()
         {
             PlayButtonSound();
-            if (menuPanel != null) menuPanel.SetActive(false);
-            if (levelSelectPanel != null) levelSelectPanel.SetActive(true);
-            if (settingsPanel != null) settingsPanel.SetActive(false);
+            menuPanel.SetActive(false);
+            levelSelectPanel.SetActive(true);
+            settingsPanel.SetActive(false);
         }
 
         private void ShowSettings()
         {
             PlayButtonSound();
-            if (menuPanel != null) menuPanel.SetActive(false);
-            if (levelSelectPanel != null) levelSelectPanel.SetActive(false);
-            if (settingsPanel != null) settingsPanel.SetActive(true);
+            menuPanel.SetActive(false);
+            levelSelectPanel.SetActive(false);
+            settingsPanel.SetActive(true);
         }
 
         private void QuitGame()
         {
             PlayButtonSound();
-            
-            // Принудительная очистка перед выходом
-            SceneCleanupManager.Instance?.ForceCleanup();
             
             #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
@@ -173,32 +148,22 @@ namespace UI
             PlayerPrefs.SetString(LANGUAGE_KEY, language);
             PlayerPrefs.Save();
             
-            // Здесь можно добавить систему локализации
-            LocalizationManager.Instance?.SetLanguage(language);
+            LocalizationManager.Instance.SetLanguage(language);
         }
 
         private void LoadSettings()
         {
             float audioVolume = PlayerPrefs.GetFloat(AUDIO_VOLUME_KEY, 1.0f);
-            if (audioSlider != null)
-            {
-                audioSlider.value = audioVolume;
-            }
+            audioSlider.value = audioVolume;
             AudioListener.volume = audioVolume;
 
             string language = PlayerPrefs.GetString(LANGUAGE_KEY, "RU");
-            if (russianToggle != null)
-            {
-                russianToggle.isOn = language == "RU";
-            }
+            russianToggle.isOn = language == "RU";
         }
 
         private void PlayButtonSound()
         {
-            if (audioSource != null && buttonClickSound != null)
-            {
-                audioSource.PlayOneShot(buttonClickSound);
-            }
+            audioSource.PlayOneShot(buttonClickSound);
         }
 
         public static void UnlockLevel(int levelIndex)
@@ -213,13 +178,11 @@ namespace UI
         
         private void OnDestroy()
         {
-            // Очищаем слушатели событий
             ClearEventListeners();
         }
         
         private void OnDisable()
         {
-            // Очищаем слушатели событий при отключении
             ClearEventListeners();
         }
     }

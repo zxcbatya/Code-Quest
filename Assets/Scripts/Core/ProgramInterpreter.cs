@@ -28,7 +28,6 @@ namespace Core
             if (Instance == null)
             {
                 Instance = this;
-                // Проверяем, является ли объект корневым перед применением DontDestroyOnLoad
                 if (transform.parent == null)
                 {
                     DontDestroyOnLoad(gameObject);
@@ -72,29 +71,24 @@ namespace Core
             {
                 _currentCommand = _commandQueue.Dequeue();
                 
-                if (_currentCommand != null)
+                if (_currentCommand)
                 {
-                    // Подсвечиваем текущую команду
                     _currentCommand.HighlightExecution();
                     
-                    // Выполняем команду
                     bool success = _currentCommand.Execute(_robot);
                     
                     OnCommandExecuted?.Invoke(_currentCommand);
                     
                     if (!success)
                     {
-                        // Команда не выполнилась - программа провалена
                         isExecuting = false;
                         OnProgramFailed?.Invoke();
                         yield break;
                     }
                     
-                    // Ждем согласно скорости выполнения
                     yield return new WaitForSeconds(1f / executionSpeed);
                     
-                    // Ждем пока робот закончит движение
-                    while (_robot != null && _robot.IsMoving())
+                    while (_robot && _robot.IsMoving())
                     {
                         yield return null;
                     }
@@ -136,7 +130,6 @@ namespace Core
         
         public void OnProgramChanged()
         {
-            // Вызывается когда программа в рабочей области изменилась
             if (isExecuting)
             {
                 StopExecution();

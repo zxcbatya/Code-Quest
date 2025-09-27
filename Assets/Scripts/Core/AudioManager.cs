@@ -52,7 +52,6 @@ namespace Core
                 soundDictionary[sound.name] = sound;
             }
             
-            // Start playing music
             if (musicSource != null && musicTracks.Length > 0)
             {
                 PlayMusicTrack(0);
@@ -61,7 +60,6 @@ namespace Core
         
         public void PlaySound(string soundName)
         {
-            // Если звук не найден, просто игнорируем его без предупреждения
             if (soundSource == null || soundDictionary == null) return;
             
             if (soundDictionary.TryGetValue(soundName, out Sound sound))
@@ -69,12 +67,10 @@ namespace Core
                 soundSource.pitch = sound.pitch;
                 soundSource.PlayOneShot(sound.clip, sound.volume);
             }
-            // Убираем предупреждение о ненайденных звуках
         }
         
         public void PlaySound(string soundName, float volume)
         {
-            // Если звук не найден, просто игнорируем его без предупреждения
             if (soundSource == null || soundDictionary == null) return;
             
             if (soundDictionary.TryGetValue(soundName, out Sound sound))
