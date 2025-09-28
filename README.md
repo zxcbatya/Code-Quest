@@ -1,6 +1,5 @@
 # Robot Coder - Образовательная игра по программированию
 
->  Документация также доступна на русском языке: [README_RU.md](README_RU.md)
 
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-blue.svg)](https://unity.com/)
 [![Platform](https://img.shields.io/badge/Platform-PC%20%7C%20WebGL-green.svg)](https://unity.com/)
