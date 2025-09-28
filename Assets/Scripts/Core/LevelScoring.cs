@@ -1,5 +1,4 @@
-using UnityEngine;
-using RobotCoder.Core;
+﻿using UnityEngine;
 
 namespace Core
 {

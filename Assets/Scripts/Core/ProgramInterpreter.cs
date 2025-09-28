@@ -86,11 +86,16 @@ namespace Core
                         yield break;
                     }
                     
+                    // Ждем завершения выполнения команды
                     yield return new WaitForSeconds(1f / executionSpeed);
                     
-                    while (_robot && _robot.IsMoving())
+                    // Ждем завершения движения робота перед выполнением следующей команды
+                    if (_robot != null)
                     {
-                        yield return null;
+                        while (_robot.IsMoving())
+                        {
+                            yield return null;
+                        }
                     }
                 }
             }

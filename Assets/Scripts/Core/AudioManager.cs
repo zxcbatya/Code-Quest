@@ -22,15 +22,14 @@ namespace Core
         [SerializeField] private Sound[] sounds;
         [SerializeField] private AudioClip[] musicTracks;
         
-        private Dictionary<string, Sound> soundDictionary;
-        private int currentMusicIndex = 0;
+        private Dictionary<string, Sound> _soundDictionary;
+        private int _currentMusicIndex = 0;
         
         private void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
-                // Проверяем, является ли объект корневым перед применением DontDestroyOnLoad
                 if (transform.parent == null)
                 {
                     DontDestroyOnLoad(gameObject);
@@ -45,11 +44,11 @@ namespace Core
         
         private void InitializeSounds()
         {
-            soundDictionary = new Dictionary<string, Sound>();
+            _soundDictionary = new Dictionary<string, Sound>();
             
             foreach (Sound sound in sounds)
             {
-                soundDictionary[sound.name] = sound;
+                _soundDictionary[sound.name] = sound;
             }
             
             if (musicSource != null && musicTracks.Length > 0)
@@ -60,25 +59,13 @@ namespace Core
         
         public void PlaySound(string soundName)
         {
-            if (soundSource == null || soundDictionary == null) return;
+            if (soundSource == null || _soundDictionary == null) return;
             
-            if (soundDictionary.TryGetValue(soundName, out Sound sound))
+            if (_soundDictionary.TryGetValue(soundName, out Sound sound))
             {
                 soundSource.pitch = sound.pitch;
                 soundSource.PlayOneShot(sound.clip, sound.volume);
             }
-        }
-        
-        public void PlaySound(string soundName, float volume)
-        {
-            if (soundSource == null || soundDictionary == null) return;
-            
-            if (soundDictionary.TryGetValue(soundName, out Sound sound))
-            {
-                soundSource.pitch = sound.pitch;
-                soundSource.PlayOneShot(sound.clip, volume);
-            }
-            // Убираем предупреждение о ненайденных звуках
         }
         
         public void PlayMusicTrack(int trackIndex)
@@ -90,60 +77,12 @@ namespace Core
                 musicSource.clip = musicTracks[trackIndex];
                 musicSource.loop = true;
                 musicSource.Play();
-                currentMusicIndex = trackIndex;
+                _currentMusicIndex = trackIndex;
             }
         }
-        
-        public void PlayNextMusicTrack()
-        {
-            currentMusicIndex = (currentMusicIndex + 1) % musicTracks.Length;
-            PlayMusicTrack(currentMusicIndex);
-        }
-        
-        public void SetSoundVolume(float volume)
-        {
-            if (soundSource != null)
-            {
-                soundSource.volume = volume;
-            }
-        }
-        
-        public void SetMusicVolume(float volume)
-        {
-            if (musicSource != null)
-            {
-                musicSource.volume = volume;
-            }
-        }
-        
-        public void StopMusic()
-        {
-            if (musicSource != null)
-            {
-                musicSource.Stop();
-            }
-        }
-        
-        public void PauseMusic()
-        {
-            if (musicSource != null)
-            {
-                musicSource.Pause();
-            }
-        }
-        
-        public void ResumeMusic()
-        {
-            if (musicSource != null)
-            {
-                musicSource.UnPause();
-            }
-        }
-        
-        // Новый метод для проверки существования звука
         public bool HasSound(string soundName)
         {
-            return soundDictionary != null && soundDictionary.ContainsKey(soundName);
+            return _soundDictionary != null && _soundDictionary.ContainsKey(soundName);
         }
     }
 }

@@ -62,7 +62,6 @@ namespace Core
             if (commandText)
             {
                 commandText.text = GetLocalizedCommandName();
-                commandText.color = Color.white;
                 commandText.overflowMode = TextOverflowModes.Overflow;
                 commandText.alignment = TextAlignmentOptions.Center;
             }

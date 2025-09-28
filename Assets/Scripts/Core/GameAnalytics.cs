@@ -8,6 +8,19 @@ namespace Core
     {
         public static GameAnalytics Instance { get; private set; }
         
+        // Wrapper classes for JSON serialization of arrays
+        [System.Serializable]
+        private class LevelAnalyticsArrayWrapper
+        {
+            public LevelAnalytics[] analytics;
+        }
+        
+        [System.Serializable]
+        private class SessionAnalyticsArrayWrapper
+        {
+            public SessionAnalytics[] analytics;
+        }
+        
         [System.Serializable]
         public class LevelAnalytics
         {
@@ -263,11 +276,19 @@ namespace Core
             if (!enableAnalytics) return;
             
             // Save level analytics
-            string levelData = JsonUtility.ToJson(GetAllLevelAnalytics());
+            LevelAnalyticsArrayWrapper levelWrapper = new LevelAnalyticsArrayWrapper
+            {
+                analytics = GetAllLevelAnalytics()
+            };
+            string levelData = JsonUtility.ToJson(levelWrapper);
             PlayerPrefs.SetString(playerPrefsKey + "_Levels", levelData);
             
             // Save session analytics
-            string sessionData = JsonUtility.ToJson(sessionAnalytics.ToArray());
+            SessionAnalyticsArrayWrapper sessionWrapper = new SessionAnalyticsArrayWrapper
+            {
+                analytics = sessionAnalytics.ToArray()
+            };
+            string sessionData = JsonUtility.ToJson(sessionWrapper);
             PlayerPrefs.SetString(playerPrefsKey + "_Sessions", sessionData);
             
             PlayerPrefs.Save();
@@ -284,10 +305,13 @@ namespace Core
             {
                 try
                 {
-                    LevelAnalytics[] loadedLevels = JsonUtility.FromJson<LevelAnalytics[]>(levelData);
-                    foreach (LevelAnalytics level in loadedLevels)
+                    LevelAnalyticsArrayWrapper levelWrapper = JsonUtility.FromJson<LevelAnalyticsArrayWrapper>(levelData);
+                    if (levelWrapper != null && levelWrapper.analytics != null)
                     {
-                        levelAnalytics[level.levelIndex] = level;
+                        foreach (LevelAnalytics level in levelWrapper.analytics)
+                        {
+                            levelAnalytics[level.levelIndex] = level;
+                        }
                     }
                 }
                 catch (System.Exception e)
@@ -302,9 +326,12 @@ namespace Core
             {
                 try
                 {
-                    SessionAnalytics[] loadedSessions = JsonUtility.FromJson<SessionAnalytics[]>(sessionData);
-                    sessionAnalytics.Clear();
-                    sessionAnalytics.AddRange(loadedSessions);
+                    SessionAnalyticsArrayWrapper sessionWrapper = JsonUtility.FromJson<SessionAnalyticsArrayWrapper>(sessionData);
+                    if (sessionWrapper != null && sessionWrapper.analytics != null)
+                    {
+                        sessionAnalytics.Clear();
+                        sessionAnalytics.AddRange(sessionWrapper.analytics);
+                    }
                 }
                 catch (System.Exception e)
                 {

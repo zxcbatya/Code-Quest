@@ -41,6 +41,7 @@ namespace Core
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            Debug.Log($"Scene loaded: {scene.name}, mode: {mode}");
             InitializeGame();
         }
 
@@ -48,12 +49,13 @@ namespace Core
         {
             Time.timeScale = 1f;
             InitializeGame();
-
         }
 
         private void InitializeGame()
         {
-            // Always update references on start, not just when null
+            Debug.Log("Initializing game...");
+            
+            // Always update references on initialization
             robotController = RobotController.Instance;
             programInterpreter = ProgramInterpreter.Instance;
             levelManager = LevelManager.Instance;
@@ -66,6 +68,8 @@ namespace Core
             
             SetupEventListeners();
             SetupGameplayActions();
+            
+            Debug.Log($"Game initialized. Robot: {robotController != null}, ProgramInterpreter: {programInterpreter != null}, LevelManager: {levelManager != null}, WorkspacePanel: {workspacePanel != null}");
         }
         
         private void SetupGameplayActions()
@@ -86,7 +90,7 @@ namespace Core
 
         private void SetupEventListeners()
         {
-            // Clear existing listeners first to avoid duplicates
+            // Clear existing listeners before setting up new ones
             if (programInterpreter != null)
             {
                 programInterpreter.OnProgramStarted -= OnProgramStarted;
@@ -120,6 +124,13 @@ namespace Core
             {
                 CommandBlock[] commands = workspacePanel.GetAllBlocks();
                 Debug.Log($"Starting program with {commands.Length} commands");
+                
+                // Make sure robot is not moving before start
+                if (robotController != null && robotController.IsMoving())
+                {
+                    robotController.ResetToStart();
+                }
+                
                 programInterpreter.ExecuteProgram(commands);
                 OnGameStarted?.Invoke();
             }
@@ -150,7 +161,7 @@ namespace Core
                 robotController.ResetToStart();
             }
             
-            // Ensure the game time scale is reset to normal
+            // Make sure game time scale is normalized
             Time.timeScale = 1f;
             
             OnGameReset?.Invoke();
@@ -217,14 +228,23 @@ namespace Core
         
         private void OnProgramCompleted()
         {
-            Debug.Log("Программа завершена");
+            Debug.Log("OnProgramCompleted: Program finished execution");
             if (levelManager != null)
             {
                 levelManager.CheckLevelCompletion();
                 
-                if (!levelManager.IsCurrentLevelCompleted())
+                bool isLevelCompleted = levelManager.IsCurrentLevelCompleted();
+                Debug.Log($"OnProgramCompleted: Is level completed? {isLevelCompleted}");
+                
+                // Only trigger failure if the level is NOT completed
+                if (!isLevelCompleted)
                 {
+                    Debug.Log("OnProgramCompleted: Level not completed, triggering failure");
                     OnProgramFailed();
+                }
+                else
+                {
+                    Debug.Log("OnProgramCompleted: Level completed, no failure triggered");
                 }
             }
         }
@@ -248,10 +268,11 @@ namespace Core
         
         private void OnLevelCompleted()
         {
-            Debug.Log("Уровень пройден!");
+            Debug.Log("OnLevelCompleted: Level completion event received");
             var gameplayUI = FindObjectOfType<GameplayUIManager>();
             if (gameplayUI != null)
             {
+                Debug.Log("OnLevelCompleted: Showing win panel");
                 int commandsUsed = workspacePanel != null ? workspacePanel.GetAllBlocks().Length : 0;
                 LevelData currentLevelData = levelManager?.GetCurrentLevel();
                 int stars = 1; 
@@ -265,6 +286,10 @@ namespace Core
                 }
                 
                 gameplayUI.ShowWinPanel(stars);
+            }
+            else
+            {
+                Debug.LogError("OnLevelCompleted: GameplayUIManager not found!");
             }
         }
         
@@ -291,4 +316,5 @@ namespace Core
             }
         }
     }
-}
+}    
+               

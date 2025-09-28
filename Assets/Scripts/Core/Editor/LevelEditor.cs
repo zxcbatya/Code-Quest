@@ -7,13 +7,13 @@ namespace Core.Editor
     [CustomEditor(typeof(LevelData), true)]
     public class LevelEditor : UnityEditor.Editor
     {
-        private LevelData levelData;
-        private bool showGridEditor = true;
-        private Vector2Int selectedTile = Vector2Int.zero;
+        private LevelData _levelData;
+        private bool _showGridEditor = true;
+        private Vector2Int _selectedTile = Vector2Int.zero;
         
         private void OnEnable()
         {
-            levelData = (LevelData)target;
+            _levelData = (LevelData)target;
         }
         
         public override void OnInspectorGUI()
@@ -22,27 +22,26 @@ namespace Core.Editor
             
             EditorGUILayout.Space();
             
-            showGridEditor = EditorGUILayout.Foldout(showGridEditor, "Grid Editor", true);
-            if (showGridEditor)
+            _showGridEditor = EditorGUILayout.Foldout(_showGridEditor, "Grid Editor", true);
+            if (_showGridEditor)
             {
                 DrawGridEditor();
             }
             
             EditorGUILayout.Space();
             
-            // Utility buttons
             GUILayout.Label("Utilities", EditorStyles.boldLabel);
             
             if (GUILayout.Button("Serialize Grid"))
             {
-                levelData.SerializeGrid();
+                _levelData.SerializeGrid();
                 EditorUtility.SetDirty(target);
                 AssetDatabase.SaveAssets();
             }
             
             if (GUILayout.Button("Deserialize Grid"))
             {
-                levelData.DeserializeGrid();
+                _levelData.DeserializeGrid();
                 EditorUtility.SetDirty(target);
                 AssetDatabase.SaveAssets();
             }
@@ -57,23 +56,22 @@ namespace Core.Editor
         
         private void DrawGridEditor()
         {
-            if (levelData.gridLayout == null || 
-                levelData.gridWidth <= 0 || levelData.gridHeight <= 0)
+            if (_levelData.gridLayout == null || 
+                _levelData.gridWidth <= 0 || _levelData.gridHeight <= 0)
             {
                 EditorGUILayout.HelpBox("Grid not initialized. Set grid dimensions and click Deserialize Grid.", 
                                       MessageType.Info);
                 return;
             }
             
-            // Selected tile info
             EditorGUILayout.LabelField("Selected Tile", 
-                                     $"({selectedTile.x}, {selectedTile.y})");
+                                     $"({_selectedTile.x}, {_selectedTile.y})");
             
             LevelData.TileType currentTileType = LevelData.TileType.Empty;
-            if (selectedTile.x >= 0 && selectedTile.x < levelData.gridWidth &&
-                selectedTile.y >= 0 && selectedTile.y < levelData.gridHeight)
+            if (_selectedTile.x >= 0 && _selectedTile.x < _levelData.gridWidth &&
+                _selectedTile.y >= 0 && _selectedTile.y < _levelData.gridHeight)
             {
-                currentTileType = levelData.gridLayout[selectedTile.x, selectedTile.y];
+                currentTileType = _levelData.gridLayout[_selectedTile.x, _selectedTile.y];
             }
             
             LevelData.TileType newTileType = (LevelData.TileType)EditorGUILayout.EnumPopup(
@@ -81,10 +79,10 @@ namespace Core.Editor
             
             if (newTileType != currentTileType)
             {
-                if (selectedTile.x >= 0 && selectedTile.x < levelData.gridWidth &&
-                    selectedTile.y >= 0 && selectedTile.y < levelData.gridHeight)
+                if (_selectedTile.x >= 0 && _selectedTile.x < _levelData.gridWidth &&
+                    _selectedTile.y >= 0 && _selectedTile.y < _levelData.gridHeight)
                 {
-                    levelData.gridLayout[selectedTile.x, selectedTile.y] = newTileType;
+                    _levelData.gridLayout[_selectedTile.x, _selectedTile.y] = newTileType;
                     EditorUtility.SetDirty(target);
                 }
             }
@@ -114,16 +112,16 @@ namespace Core.Editor
             
             EditorGUILayout.BeginVertical(scrollViewStyle);
             
-            for (int y = levelData.gridHeight - 1; y >= 0; y--)
+            for (int y = _levelData.gridHeight - 1; y >= 0; y--)
             {
                 EditorGUILayout.BeginHorizontal();
                 
-                for (int x = 0; x < levelData.gridWidth; x++)
+                for (int x = 0; x < _levelData.gridWidth; x++)
                 {
-                    LevelData.TileType tileType = levelData.gridLayout[x, y];
+                    LevelData.TileType tileType = _levelData.gridLayout[x, y];
                     string tileLabel = GetTileSymbol(tileType);
                     
-                    GUIStyle style = (x == selectedTile.x && y == selectedTile.y) ? 
+                    GUIStyle style = (x == _selectedTile.x && y == _selectedTile.y) ? 
                                    selectedStyle : gridStyle;
                     
                     Color tileColor = GetTileColor(tileType);
@@ -133,7 +131,7 @@ namespace Core.Editor
                     if (GUILayout.Button(tileLabel, style, 
                                        GUILayout.Width(cellSize), GUILayout.Height(cellSize)))
                     {
-                        selectedTile = new Vector2Int(x, y);
+                        _selectedTile = new Vector2Int(x, y);
                     }
                     
                     GUI.backgroundColor = originalColor;
@@ -177,13 +175,13 @@ namespace Core.Editor
         
         private void ClearGrid()
         {
-            if (levelData.gridLayout == null) return;
+            if (_levelData.gridLayout == null) return;
             
-            for (int x = 0; x < levelData.gridWidth; x++)
+            for (int x = 0; x < _levelData.gridWidth; x++)
             {
-                for (int y = 0; y < levelData.gridHeight; y++)
+                for (int y = 0; y < _levelData.gridHeight; y++)
                 {
-                    levelData.gridLayout[x, y] = LevelData.TileType.Empty;
+                    _levelData.gridLayout[x, y] = LevelData.TileType.Empty;
                 }
             }
         }

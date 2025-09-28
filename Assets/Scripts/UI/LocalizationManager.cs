@@ -27,7 +27,11 @@ namespace RobotCoder.UI
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
+                // Проверяем, является ли объект корневым перед применением DontDestroyOnLoad
+                if (transform.parent == null)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
                 InitializeLocalization();
             }
             else

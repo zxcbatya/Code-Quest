@@ -16,6 +16,7 @@ namespace Core
         [SerializeField] private GameObject wallTilePrefab;
         [SerializeField] private GameObject goalTilePrefab;
         [SerializeField] private GameObject pitTilePrefab;
+        [SerializeField] private GameObject doorTilePrefab; // Add door tile prefab
         
         [Header("Grid Parent")]
         [SerializeField] private Transform gridParent;
@@ -96,6 +97,10 @@ namespace Core
                             if (pitTilePrefab != null)
                                 tile = Instantiate(pitTilePrefab, position, Quaternion.identity, gridParent);
                             break;
+                        case LevelData.TileType.Door:
+                            if (doorTilePrefab != null)
+                                tile = Instantiate(doorTilePrefab, position, Quaternion.identity, gridParent);
+                            break;
                         default:
                             if (floorTilePrefab != null)
                                 tile = Instantiate(floorTilePrefab, position, Quaternion.identity, gridParent);
@@ -151,4 +156,4 @@ namespace Core
             return new Vector2Int(x, y);
         }
     }
-}
+}         

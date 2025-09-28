@@ -56,17 +56,11 @@ namespace UI
         {
             Color targetColor = _isUnlocked ? unlockedColor : lockedColor;
             
-            if (button.targetGraphic != null)
-            {
-                button.targetGraphic.color = targetColor;
-            }
-
             if (lockIcon != null)
             {
                 lockIcon.gameObject.SetActive(!_isUnlocked);
             }
 
-            levelNumberText.color = Color.white;
         }
 
         private void LoadLevelProgress()

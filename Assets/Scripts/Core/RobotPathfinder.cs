@@ -19,7 +19,6 @@ namespace Core
             }
         }
         
-        // Simple pathfinding using BFS (Breadth-First Search)
         public List<Vector2Int> FindPath(Vector2Int start, Vector2Int goal, LevelData levelData)
         {
             if (levelData == null) return null;

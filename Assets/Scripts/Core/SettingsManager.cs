@@ -9,9 +9,10 @@ namespace Core
         
         [Header("Audio Settings")]
         [SerializeField] private AudioMixer audioMixer;
-        [SerializeField] private float masterVolume = 0f;
-        [SerializeField] private float musicVolume = 0f;
-        [SerializeField] private float sfxVolume = 0f;
+
+        [SerializeField] private float masterVolume;
+        [SerializeField] private float musicVolume;
+        [SerializeField] private float sfxVolume;
         
         [Header("Game Settings")]
         [SerializeField] private bool soundEnabled = true;
@@ -64,7 +65,7 @@ namespace Core
             OnSettingsChanged?.Invoke();
         }
         
-        public void SetSFXVolume(float volume)
+        public void SetSfxVolume(float volume)
         {
             sfxVolume = volume;
             PlayerPrefs.SetFloat("SFXVolume", volume);
@@ -123,7 +124,7 @@ namespace Core
             return musicVolume;
         }
         
-        public float GetSFXVolume()
+        public float GetSfxVolume()
         {
             return sfxVolume;
         }

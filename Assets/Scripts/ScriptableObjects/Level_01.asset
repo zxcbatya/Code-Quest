@@ -16,8 +16,8 @@ MonoBehaviour:
   levelName: level one
   description: asdsads
   difficulty: 1
-  maxCommands: 10
-  optimalCommands: 5
+  maxCommands: 15
+  optimalCommands: 8
   startPosition: {x: 0, y: 0}
   startDirection: 0
   goalPositions:
@@ -28,27 +28,21 @@ MonoBehaviour:
   allowMoveForward: 1
   allowTurnLeft: 1
   allowTurnRight: 1
-  allowJump: 0
-  allowInteract: 0
-  allowRepeat: 0
-  allowIf: 0
-  allowElse: 0
+  allowJump: 1
+  allowInteract: 1
+  allowRepeat: 1
+  allowIf: 1
+  allowElse: 1
   serializedGrid:
-  - position: {x: 2, y: 5}
+  - position: {x: 1, y: 2}
+    type: 5
+    value: 0
+  - position: {x: 3, y: 1}
     type: 1
     value: 0
-  - position: {x: 3, y: 4}
+  - position: {x: 3, y: 2}
     type: 1
     value: 0
-  - position: {x: 5, y: 3}
-    type: 6
-    value: 0
-  - position: {x: 5, y: 5}
-    type: 3
-    value: 0
-  - position: {x: 5, y: 7}
-    type: 2
-    value: 0
-  - position: {x: 7, y: 5}
-    type: 3
+  - position: {x: 3, y: 3}
+    type: 1
     value: 0

@@ -39,10 +39,16 @@ namespace UI
             UpdateWorkspaceVisual();
         }
 
+        private void OnEnable()
+        {
+            SetupEventListeners();
+        }
+
         private void InitializeWorkspace()
         {
             if (mainDropZone != null)
             {
+                mainDropZone.OnBlockDropped -= OnBlockDropped;
                 mainDropZone.OnBlockDropped += OnBlockDropped;
             }
             UpdateInstructionText();
@@ -62,22 +68,23 @@ namespace UI
         {
             ClearEventListeners();
             
-            if (clearAllButton != null)
-                clearAllButton.onClick.AddListener(ClearAllBlocks);
-            if (undoButton != null)
-                undoButton.onClick.AddListener(UndoLastAction);
-            if (redoButton != null)
-                redoButton.onClick.AddListener(RedoLastAction);
+            clearAllButton.onClick.AddListener(ClearAllBlocks);
+            undoButton.onClick.AddListener(UndoLastAction);
+            redoButton.onClick.AddListener(RedoLastAction);
+            
+            // Переустанавливаем слушатель событий drop zone
+            mainDropZone.OnBlockDropped -= OnBlockDropped;
+            mainDropZone.OnBlockDropped += OnBlockDropped;
         }
         
         private void ClearEventListeners()
         {
-            if (clearAllButton != null)
-                clearAllButton.onClick.RemoveAllListeners();
-            if (undoButton != null)
-                undoButton.onClick.RemoveAllListeners();
-            if (redoButton != null)
-                redoButton.onClick.RemoveAllListeners();
+            clearAllButton.onClick.RemoveAllListeners();
+            undoButton.onClick.RemoveAllListeners();
+            redoButton.onClick.RemoveAllListeners();
+            
+            // Очищаем слушатель событий drop zone
+            mainDropZone.OnBlockDropped -= OnBlockDropped;
         }
 
         public void OnBlockAdded(CommandBlock block)
@@ -129,7 +136,7 @@ namespace UI
                 {
                     string runText = LocalizationManager.Instance?.GetText("PRESS_START_TO_RUN") ?? "Нажмите СТАРТ для запуска";
                     instructionText.text = runText;
-                    instructionText.color = new Color(0.2f, 0.8f, 0.2f, 0.8f);
+                    instructionText.color = new Color(0.1f, 0.4f, 1f, 0.8f);
                 }
                 else
                 {

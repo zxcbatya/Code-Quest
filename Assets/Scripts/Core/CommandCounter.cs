@@ -28,7 +28,6 @@ namespace Core
         
         private void Start()
         {
-            // Subscribe to program interpreter events
             if (ProgramInterpreter.Instance != null)
             {
                 ProgramInterpreter.Instance.OnProgramStarted += OnProgramStarted;
@@ -76,7 +75,6 @@ namespace Core
         
         private void OnDestroy()
         {
-            // Unsubscribe from events
             if (ProgramInterpreter.Instance != null)
             {
                 ProgramInterpreter.Instance.OnProgramStarted -= OnProgramStarted;

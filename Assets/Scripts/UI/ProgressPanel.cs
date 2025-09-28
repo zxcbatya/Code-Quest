@@ -47,13 +47,13 @@ namespace UI
 
         private void SetupEventListeners()
         {
-            if (hintButton) hintButton.onClick.AddListener(ShowNextHint);
+            hintButton.onClick.AddListener(ShowNextHint);
         }
 
         public void SetLevelInfo(string title, string objective, int goalCount)
         {
-            if (levelTitleText) levelTitleText.text = title;
-            if (objectiveText) objectiveText.text = objective;
+            levelTitleText.text = title;
+            objectiveText.text = objective;
             
             _totalGoals = goalCount;
             _completedGoals = 0;
@@ -64,15 +64,10 @@ namespace UI
 
         private void SetupGoalIcons()
         {
-            if (goalIcons == null) return;
-
             for (int i = 0; i < goalIcons.Length; i++)
             {
-                if (goalIcons[i] != null)
-                {
-                    goalIcons[i].gameObject.SetActive(i < _totalGoals);
-                    goalIcons[i].color = incompleteGoalColor;
-                }
+                goalIcons[i].gameObject.SetActive(i < _totalGoals);
+                goalIcons[i].color = incompleteGoalColor;
             }
         }
 
@@ -92,15 +87,10 @@ namespace UI
 
         private void UpdateGoalIcons()
         {
-            if (goalIcons == null) return;
-
             for (int i = 0; i < goalIcons.Length && i < _totalGoals; i++)
             {
-                if (goalIcons[i] != null)
-                {
-                    Color targetColor = i < _completedGoals ? completedGoalColor : incompleteGoalColor;
-                    StartCoroutine(AnimateIconColor(goalIcons[i], targetColor));
-                }
+                Color targetColor = i < _completedGoals ? completedGoalColor : incompleteGoalColor;
+                StartCoroutine(AnimateIconColor(goalIcons[i], targetColor));
             }
         }
 
@@ -129,11 +119,8 @@ namespace UI
 
         private void UpdateProgressText(float progress)
         {
-            if (progressText != null)
-            {
-                int displayProgress = Mathf.RoundToInt(progress * _totalGoals);
-                progressText.text = $"{displayProgress}/{_totalGoals}";
-            }
+            int displayProgress = Mathf.RoundToInt(progress * _totalGoals);
+            progressText.text = $"{displayProgress}/{_totalGoals}";
         }
 
         private IEnumerator AnimateIconColor(Image icon, Color targetColor)
@@ -153,11 +140,8 @@ namespace UI
 
         private void UpdateProgressDisplay()
         {
-            if (progressSlider) 
-            {
-                progressSlider.value = _totalGoals > 0 ? (float)_completedGoals / _totalGoals : 0f;
-                progressSlider.fillRect.GetComponent<Image>().color = progressBarColor;
-            }
+            progressSlider.value = _totalGoals > 0 ? (float)_completedGoals / _totalGoals : 0f;
+            progressSlider.fillRect.GetComponent<Image>().color = progressBarColor;
             
             UpdateProgressText(_totalGoals > 0 ? (float)_completedGoals / _totalGoals : 0f);
         }
@@ -217,8 +201,6 @@ namespace UI
 
         private IEnumerator AnimateHintPanel(bool show)
         {
-            if (!hintPanel) yield break;
-            
             CanvasGroup canvasGroup = hintPanel.GetComponent<CanvasGroup>();
             if (canvasGroup == null)
                 canvasGroup = hintPanel.AddComponent<CanvasGroup>();

@@ -46,7 +46,7 @@ namespace RobotCoder.UI
                 musicVolumeSlider.value = SettingsManager.Instance.GetMusicVolume();
                 
             if (sfxVolumeSlider != null)
-                sfxVolumeSlider.value = SettingsManager.Instance.GetSFXVolume();
+                sfxVolumeSlider.value = SettingsManager.Instance.GetSfxVolume();
                 
             if (soundToggle != null)
                 soundToggle.isOn = SettingsManager.Instance.IsSoundEnabled();
@@ -100,7 +100,7 @@ namespace RobotCoder.UI
         
         private void OnSFXVolumeChanged(float value)
         {
-            SettingsManager.Instance?.SetSFXVolume(value);
+            SettingsManager.Instance?.SetSfxVolume(value);
         }
         
         private void OnSoundToggled(bool isOn)

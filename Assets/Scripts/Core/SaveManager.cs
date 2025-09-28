@@ -36,24 +36,20 @@ namespace Core
         
         public void SaveGame()
         {
-            // Save to PlayerPrefs for simplicity
             PlayerPrefs.SetInt("CurrentLevel", currentData.currentLevel);
             PlayerPrefs.SetInt("Coins", currentData.coins);
             PlayerPrefs.SetInt("Stars", currentData.stars);
             
-            // Save achievements
             foreach (var achievement in currentData.achievements)
             {
                 PlayerPrefs.SetInt($"Achievement_{achievement.Key}", achievement.Value ? 1 : 0);
             }
             
-            // Save level stars
             foreach (var levelStar in currentData.levelStars)
             {
                 PlayerPrefs.SetInt($"LevelStar_{levelStar.Key}", levelStar.Value);
             }
             
-            // Save purchased items
             foreach (var item in currentData.purchasedItems)
             {
                 PlayerPrefs.SetInt($"PurchasedItem_{item.Key}", item.Value ? 1 : 0);
@@ -69,18 +65,7 @@ namespace Core
             currentData.coins = PlayerPrefs.GetInt("Coins", 0);
             currentData.stars = PlayerPrefs.GetInt("Stars", 0);
             
-            // Load achievements
-            // In a real implementation, you would know the achievement IDs
-            // For now, we'll leave the dictionary empty
-            
-            // Load level stars
-            // In a real implementation, you would know the level IDs
-            // For now, we'll leave the dictionary empty
-            
-            // Load purchased items
-            // In a real implementation, you would know the item IDs
-            // For now, we'll leave the dictionary empty
-            
+           
             Debug.Log("Игра загружена");
         }
         

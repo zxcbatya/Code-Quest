@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace RobotCoder.UI
+namespace UI
 {
     public class DragVisualFeedback : MonoBehaviour
     {
@@ -9,7 +9,7 @@ namespace RobotCoder.UI
         [SerializeField] private Color validDropColor = new Color(0.2f, 0.8f, 0.2f, 0.8f);
         [SerializeField] private Color invalidDropColor = new Color(0.8f, 0.2f, 0.2f, 0.8f);
         
-        private Color originalColor;
+        private Color _originalColor;
         
         private void Awake()
         {
@@ -17,36 +17,31 @@ namespace RobotCoder.UI
                 backgroundImage = GetComponent<Image>();
             
             if (backgroundImage != null)
-                originalColor = backgroundImage.color;
+                _originalColor = backgroundImage.color;
         }
         
         public void ShowDragStart()
         {
-            if (backgroundImage != null)
-                backgroundImage.color = originalColor * 1.2f;
+                backgroundImage.color = _originalColor * 1.2f;
         }
         
         public void ShowValidDropZone()
         {
-            if (backgroundImage != null)
                 backgroundImage.color = validDropColor;
         }
         
         public void ShowInvalidDropZone()
         {
-            if (backgroundImage != null)
                 backgroundImage.color = invalidDropColor;
         }
         
         public void HideFeedback()
         {
-            if (backgroundImage != null)
-                backgroundImage.color = originalColor;
+                backgroundImage.color = _originalColor;
         }
         
         public void ShowSuccessFeedback()
         {
-            if (backgroundImage != null)
                 StartCoroutine(QuickSuccessAnimation());
         }
         
